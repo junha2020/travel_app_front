@@ -1,5 +1,5 @@
-import React, {useState } from 'react';
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react'; // lucide-react에서 아이콘 가져오기
 import styles from './css/LoginPage.module.css'
 import { login } from '../api/authApi';
@@ -99,7 +99,7 @@ const LoginPage = () => {
                         </button>
                     </form>
                     <p className={styles.signUpText}>
-                        No account yet? <a href="/auth/sign-up" className={styles.signUpLink}>Sign up</a>
+                        No account yet? <Link to="/register" className={styles.signUpLink}>Sign up</Link>
                     </p>
                 </div>
             ) : (

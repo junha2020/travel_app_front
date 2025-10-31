@@ -4,7 +4,7 @@ export interface UserLoginRequestDTO {
 }
 
 export interface UserSignUpRequestDTO {
-    userNAme: string;
+    userName: string;
     password: string;
     email: string;
     nickName: string;
