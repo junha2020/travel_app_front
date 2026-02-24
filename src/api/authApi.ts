@@ -5,22 +5,30 @@ import type {
   UserResponseDTO,
 } from "../types/userTypes";
 
-const API_BASE_URL = "http://localhost:8080/api/users";
+// 공통 axios 인스턴스 생성
+const api = axios.create({
+  baseURL: "http://localhost:8080/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// 요청 인터셉터 (로그인 후 토큰 있으면 자동으로 헤더에 넣음)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token"); // 나중에 저장할 토큰 키 이름
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 // 로그인 API 호출 함수
 /* @Param credentials - userName, password 들어간 객체 */
 export const login = async (
   credentials: UserLoginRequestDTO,
 ): Promise<UserResponseDTO> => {
-  try {
-    const response = await axios.post<UserResponseDTO>(
-      `${API_BASE_URL}/login`,
-      credentials,
-    );
-    return response.data;
-  } catch (error) {
-    throw new Error("로그인 실패");
-  }
+  const response = await api.post<UserResponseDTO>("/users/login", credentials);
+  return response.data;
 };
 
 // 회원가입 API 호출 함수
@@ -28,25 +36,17 @@ export const login = async (
 export const register = async (
   signUpData: UserSignUpRequestDTO,
 ): Promise<UserResponseDTO> => {
-  try {
-    const response = await axios.post<UserResponseDTO>(
-      `${API_BASE_URL}/register`,
-      signUpData,
-    );
-    return response.data;
-  } catch (error) {
-    throw new Error("회원가입 실패");
-  }
+  const response = await api.post<UserResponseDTO>(
+    "users/register",
+    signUpData,
+  );
+  return response.data;
 };
 
 // 내 정보 가져오기 API
 export const getMe = async (): Promise<UserResponseDTO> => {
-  try {
-    const response = await axios.get<UserResponseDTO>(`${API_BASE_URL}/me`);
-    return response.data;
-  } catch (error) {
-    throw new Error("내 정보를 가져오지 못함");
-  }
+  const response = await api.get<UserResponseDTO>("/users/me");
+  return response.data;
 };
 
 // 내보내기

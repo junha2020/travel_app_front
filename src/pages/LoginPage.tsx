@@ -1,147 +1,67 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, AlertTriangle } from "lucide-react"; // lucide-react에서 아이콘 가져오기
-import styles from "./css/LoginPage.module.css";
-import { login } from "../api/authApi";
-import type { UserLoginRequestDTO } from "../types/userTypes";
-
-// 로고 컴포넌트
-const Logo = () => (
-  <img src="/public/favicon.png" alt="Logo" className={styles.logo} />
-);
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { authApi } from "../api/authApi";
+import { useAuthStore } from "../store/useAuthStore";
+import { AxiosError } from "axios";
 
 const LoginPage = () => {
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [view, setView] = useState("signIn"); // 'signIn' or 'forgotPassword'
-
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({ userName: "", password: "" });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  const setUser = useAuthStore((state) => state.setUser);
 
-    try {
-      const credentials: UserLoginRequestDTO = { userName, password };
-      const userData = await login(credentials);
-      console.log("로그인 성공!", userData);
+  const loginMutation = useMutation({
+    mutationFn: authApi.login,
+    onSuccess: (data) => {
+      // 로그인 성공 시 실행될 로직
+      setUser(data);
+      localStorage.setItem("token", data.token);
+      alert("로그인 성공!");
       navigate("/");
-    } catch (err) {
-      setError((err as Error).message);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    onError: (error) => {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const errorMessage = axiosError.response?.data?.message || "로그인 실패";
+      alert(errorMessage);
+    },
+  });
 
-  const handleForgotPasswordClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setView("forgotPassword");
-  };
-
-  const handleBackToSignInClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setView("signIn");
-    setError("");
+    loginMutation.mutate(formData);
   };
 
   return (
-    <div className={styles.container}>
-      {view === "signIn" ? (
-        <div className={styles.loginBox}>
-          <Logo />
-          <h1 className={styles.title}>Sign in to your account</h1>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="email" className={styles.label}>
-                Email
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="아이디를 입력하세요"
-                className={styles.input}
-                required
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <div className={styles.passwordLabelContainer}>
-                <label htmlFor="password" className={styles.label}>
-                  Password
-                </label>
-                <a
-                  href="#"
-                  onClick={handleForgotPasswordClick}
-                  className={styles.forgotPassword}
-                >
-                  forgot password?
-                </a>
-              </div>
-              <div className={styles.passwordInputWrapper}>
-                <input
-                  id="password"
-                  type={isPasswordVisible ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
-                  className={styles.input}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  className={styles.eyeIcon}
-                >
-                  {isPasswordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-            {error && <p className="error">{error}</p>}
-            <button
-              type="submit"
-              className={styles.signInButton}
-              disabled={isLoading}
-            >
-              {isLoading ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
-          <p className={styles.signUpText}>
-            No account yet?{" "}
-            <Link to="/register" className={styles.signUpLink}>
-              Sign up
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <div className={`${styles.loginBox} ${styles.forgotPasswordBox}`}>
-          <AlertTriangle size={48} color="#F56565" />
-          <h2 className={styles.forgotPasswordTitle}>Not available</h2>
-          <p className={styles.forgotPasswordText}>
-            Password reset is not configured on this instance
-          </p>
-          <div className={styles.buttonGroup}>
-            <button
-              onClick={handleBackToSignInClick}
-              className={styles.signInButton}
-            >
-              Sign In
-            </button>
-            <button
-              className={`${styles.signInButton} ${styles.secondaryButton}`}
-            >
-              Setup instructions
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="mx-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-center">로그인</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="아이디"
+          className="w-full p-2 border rounded"
+          value={formData.userName}
+          onChange={(e) =>
+            setFormData({ ...formData, userName: e.target.value })
+          }
+        />
+        <input
+          type="password"
+          placeholder="비밀번호"
+          className="w-full p-2 border rounded"
+          value={formData.password}
+          onChange={(e) =>
+            setFormData({ ...formData, password: e.target.value })
+          }
+        />
+        <button
+          type="submit"
+          disabled={loginMutation.isPending} // 로딩 중 버튼 비활성화
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+        >
+          {loginMutation.isPending ? "로그인 중..." : "로그인"}
+        </button>
+      </form>
     </div>
   );
 };

@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { authApi } from "../api/authApi";
 import { useAuthStore } from "../store/useAuthStore";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 
 export const useUser = () => {
   const { user, setUser } = useAuthStore();
 
   const query = useQuery({
-    queryKey:: ["me"],
+    queryKey: ["me"],
     queryFn: authApi.getMe,
-    // 로그인 상태일 때만자동으로 fetch 하도록 설정
-    enabled: !!localStorage.getITem("auth-storage"),
+    // 로그인 상태일 때만 자동으로 fetch 하도록 설정
+    enabled: !!localStorage.getItem("auth-storage"),
     retry: false,
   });
 
@@ -25,5 +25,5 @@ export const useUser = () => {
     ...query,
     user, // Zustand에 저장된 유저 정보 반환
     isLoggedIn: !!user,
-  }
+  };
 };
