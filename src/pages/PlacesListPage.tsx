@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPlaces } from "../api/placeApi";
+import { Map } from "lucide-react";
 
 interface Place {
   id: number;
@@ -10,6 +11,30 @@ interface Place {
   imageUrl?: string;
   location: string;
 }
+
+const MOCK_PLACES = [
+  {
+    id: 1,
+    name: "도쿄 타워",
+    desc: "도쿄의 상징. 야경 맛집",
+    cat: "관광지",
+    icon: "🗼",
+  },
+  {
+    id: 2,
+    name: "이치란 라멘",
+    desc: "돈코츠 라멘의 근본",
+    cat: "맛집",
+    icon: "🍜",
+  },
+  {
+    id: 3,
+    name: "신주쿠 교엔",
+    desc: "도심 속 힐링 스팟",
+    cat: "자연",
+    icon: "🌳",
+  },
+];
 
 const PlacesListPage = () => {
   const {
@@ -31,61 +56,36 @@ const PlacesListPage = () => {
     );
 
   return (
-    <div className="bg-white min-h-screen pb-20">
-      <header className="px-5 py-6">
-        <h1 className="text-2xl font-bold text-gray-900">어디로 떠나시나요?</h1>
-        <p className="text-gray-500 mt-1">
-          지금 인기 있는 여행지들을 모아봤어요.
-        </p>
-      </header>
-      {/* 장소 리스트 */}
-      <section className="px-5 space-y-8">
-        {places?.map((place) => (
-          <div key={places.id} className="group cursor-pointer">
-            {/* 이미지 */}
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-gray-100 shadow-sm bord border-gary-100">
-              <img
-                src={
-                  place.imageUrl ||
-                  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80"
-                }
-                alt={place.name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              {/* 이미지 위 오버레이 */}
-              <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg text-white text-xs font-bold flex items-center gap-1">
-                ⭐ {place.rating}
-              </div>
+    <div className="p-4 bg-gray-50 min-h-full">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-2 px-1">
+        <Map className="text-blue-500" size={24} />
+        추천 장소 리스트
+      </h2>
+
+      <div className="flex flex-col gap-3">
+        {MOCK_PLACES.map((place) => (
+          <div
+            key={place.id}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex gap-4 items-center active:scale-[0.98] transition-transform cursor-pointer"
+          >
+            <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center text-3xl shrink-0">
+              {place.icon}
             </div>
-            {/* 정보 */}
-            <div className="mt-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-500 transition-colors">
-                    {place.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    {place.category} · {place.location}
-                  </p>
-                </div>
-              </div>
-              {/* 리뷰 */}
-              <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-                <span>리뷰 {place.reviewCount}개</span>
-                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                <span className="text-blue-500 font-medium">
-                  실시간 인기 급상승
+            <div className="flex flex-col flex-1">
+              <h3 className="text-base font-bold text-gray-900 mb-1">
+                {place.name}
+              </h3>
+              <p className="text-xs text-gray-500 mb-2 line-clamp-1">
+                {place.desc}
+              </p>
+              <div className="flex mt-auto">
+                <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded-md">
+                  {place.cat}
                 </span>
               </div>
             </div>
           </div>
         ))}
-      </section>
-      {/* 하단 플로팅 버튼 */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
-        <button className="bg-blue-500 text-white px-8 py-3 rounded-full shadow-2xl font-bold flex items-center gap-2 hover:bg-blue-600 active:scale-95 transition-all">
-          지도로 보기
-        </button>
       </div>
     </div>
   );
