@@ -3,7 +3,10 @@ import HomePage from "./pages/HomePage";
 import PlacesListPage from "./pages/PlacesListPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import PlaceDetailPage from "./pages/PlaceDetailPage";
 import { Routes, Route } from "react-router-dom";
+import MySchedulePage from "./pages/MySchedulePage";
+import PlanEditorPage from "./pages/PlanEditorPage";
 
 function App() {
   return (
@@ -18,6 +21,9 @@ function App() {
             <Route path="/places" element={<PlacesListPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/detail" element={<PlaceDetailPage />} />
+            <Route path="/schedule" element={<MySchedulePage />} />
+            <Route path="/editor" element={<PlanEditorPage />} />
           </Routes>
         </main>
         <Navbar />
