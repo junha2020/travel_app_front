@@ -1,4 +1,6 @@
 import { ChevronLeft, MapPin, Plus, Star } from "lucide-react";
+import usePlanStore from "../store/usePlanStore";
+import { useNavigate } from "react-router-dom";
 
 const MOCK_PLACE = {
   id: 1,
@@ -10,12 +12,33 @@ const MOCK_PLACE = {
   desc: "대구 시민들의 영원한 휴식처. 오리배 타면서 힐링하기 좋고 야경이 미쳤음. 벚꽃 필 때 가면 사람 터짐.",
 };
 
-const PlaceDetailPage = ({ navigate }: any) => {
+const PlaceDetailPage = () => {
+  const navigate = useNavigate();
+  const planItems = usePlanStore((state) => state.planItems);
+  const addPlanItem = usePlanStore((state) => state.addPlanItem);
+
+  const handleAddPlace = () => {
+    const isAlreadyExist = planItems.find((p) => p.id === MOCK_PLACE.id);
+
+    if (isAlreadyExist) {
+      alert("이미 담겨있습니다!");
+      return;
+    }
+
+    addPlanItem({
+      id: MOCK_PLACE.id,
+      name: MOCK_PLACE.name,
+      category: MOCK_PLACE.category,
+    });
+    alert("추가되었습니다.");
+    navigate("/schedule");
+  };
+
   return (
     <div className="flex flex-col h-full bg-white relative">
       {/* 뒤로가기 버튼 */}
       <button
-        onClick={() => navigate("home")}
+        onClick={() => navigate("/")}
         className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm active:scale-95"
       >
         <ChevronLeft size={24} />
@@ -54,7 +77,7 @@ const PlaceDetailPage = ({ navigate }: any) => {
       {/* 하단 찜하기 버튼 */}
       <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6 shadow-[0_-10px_20px_rgba(0, 0, 0, 0.05">
         <button
-          onClick={() => navigate("schedule")}
+          onClick={handleAddPlace}
           className="w-full bg-blue-500 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98] transition-transform"
         >
           <Plus size={20} />내 일정에 담기

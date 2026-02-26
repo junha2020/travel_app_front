@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface PlanItem {
-  id: string;
+  id: number;
   name: string;
   category: string;
 }
@@ -22,7 +22,15 @@ const usePlanStore = create<PlanState>()(
       planItems: [],
       setPlanItems: (items) => set({ planItems: items }),
       addPlanItem: (item) =>
-        set((state) => ({ planItems: [...state.planItems, item] })),
+        set((state) => {
+          const isAlreadyExist = state.planItems.find((p) => p.id === item.id);
+
+          if (isAlreadyExist) {
+            return state;
+          }
+
+          return { planItems: [...state.planItems, item] };
+        }),
     }),
     {
       name: "plan-storage",

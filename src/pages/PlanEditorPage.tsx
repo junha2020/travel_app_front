@@ -1,11 +1,14 @@
 import { ChevronLeft, GripVertical, MapIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const PlanEditorPage = ({ navigate }: any) => {
+const PlanEditorPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="flex flex-col h-full bg-white relative">
       <div className="flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0 z-20 shadow-sm">
         <button
-          onClick={() => navigate("schedule")}
+          onClick={() => navigate("/schedule")}
           className="text-gray-900 p-1 rounded-full"
         >
           <ChevronLeft size={28} />
