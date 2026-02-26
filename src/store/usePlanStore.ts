@@ -14,6 +14,8 @@ interface PlanState {
   setPlanItems: (items: PlanItem[]) => void;
   // 아이템 하나 추가할 때
   addPlanItem: (item: PlanItem) => void;
+  // 아이템 하나 삭제할 때
+  removePlanItem: (id: number) => void;
 }
 
 const usePlanStore = create<PlanState>()(
@@ -31,6 +33,10 @@ const usePlanStore = create<PlanState>()(
 
           return { planItems: [...state.planItems, item] };
         }),
+      removePlanItem: (id) =>
+        set((state) => ({
+          planItems: state.planItems.filter((item) => item.id !== id),
+        })),
     }),
     {
       name: "plan-storage",

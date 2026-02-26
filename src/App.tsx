@@ -5,8 +5,10 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import PlaceDetailPage from "./pages/PlaceDetailPage";
 import { Routes, Route } from "react-router-dom";
-import MySchedulePage from "./pages/MySchedulePage";
-import PlanEditorPage from "./pages/PlanEditorPage";
+import BackpackPage from "./pages/BackpackPage";
+import PlannerPage from "./pages/PlannerPage";
+import MyPlansPage from "./pages/MyPlansPage";
+import AccountRecoveryPage from "./pages/AccountRecoveryPage";
 
 function App() {
   return (
@@ -18,12 +20,20 @@ function App() {
         <main className="flex-1 overflow-y-auto pb-[64px] bg-white">
           <Routes>
             <Route path="/" element={<HomePage />} />
+
+            {/* 장소 관련 */}
             <Route path="/places" element={<PlacesListPage />} />
+            <Route path="/places/:id" element={<PlaceDetailPage />} />
+
+            {/* 인증 관련 */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/detail" element={<PlaceDetailPage />} />
-            <Route path="/schedule" element={<MySchedulePage />} />
-            <Route path="/editor" element={<PlanEditorPage />} />
+            <Route path="/find-account" element={<AccountRecoveryPage />} />
+
+            {/* 여행 계획 관련 */}
+            <Route path="/backpack" element={<BackpackPage />} />
+            <Route path="/planner/:planId" element={<PlannerPage />} />
+            <Route path="/schedule/:scheduleId" element={<MyPlansPage />} />
           </Routes>
         </main>
         <Navbar />

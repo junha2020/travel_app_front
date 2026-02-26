@@ -2,9 +2,10 @@ import { Calendar, ChevronLeft, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import usePlanStore from "../store/usePlanStore";
 
-const MySchedulePage = () => {
+const BackpackPage = () => {
   const navigate = useNavigate();
   const planItems = usePlanStore((state) => state.planItems);
+  const removePlanItem = usePlanStore((state) => state.removePlanItem);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 relative">
@@ -35,7 +36,10 @@ const MySchedulePage = () => {
               <h3 className="font-bold text-gray-900">{item.name}</h3>
               <p className="text-xs text-gray-500">{item.category}</p>
             </div>
-            <button className="text-gray-300 hover:text-red-500 p-2">
+            <button
+              onClick={() => removePlanItem(item.id)}
+              className="text-gray-300 hover:text-red-500 p-2"
+            >
               <Trash2 size={18} />
             </button>
           </div>
@@ -60,4 +64,4 @@ const MySchedulePage = () => {
   );
 };
 
-export default MySchedulePage;
+export default BackpackPage;

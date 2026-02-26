@@ -1,7 +1,7 @@
 import { ChevronLeft, GripVertical, MapIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const PlanEditorPage = () => {
+const PlannerPage = () => {
   const navigate = useNavigate();
 
   return (
@@ -86,4 +86,4 @@ const PlanEditorPage = () => {
   );
 };
 
-export default PlanEditorPage;
+export default PlannerPage;
