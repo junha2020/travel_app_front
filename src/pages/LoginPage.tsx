@@ -59,7 +59,12 @@ const LoginPage = () => {
           로그인
         </button>
         <div className="flex justify-center gap-4 mt-4 text-xs font-bold text-gray-400">
-          <button className="hover:text-gray-600">비밀번호 찾기</button>
+          <button
+            onClick={() => navigate("/find-account")}
+            className="hover:text-gray-600"
+          >
+            비밀번호 찾기
+          </button>
           <span>|</span>
           <button
             onClick={() => navigate("/register")}

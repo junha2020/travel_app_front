@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface PlanItem {
+export interface PlanItem {
   id: number;
   name: string;
   category: string;

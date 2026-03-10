@@ -1,18 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPlaces } from "../api/placeApi";
 import { Map } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { type Place } from "../types/placeTypes";
 
-interface Place {
-  id: number;
-  name: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  imageUrl?: string;
-  location: string;
-}
-
-const MOCK_PLACES = [
+/* const MOCK_PLACES = [
   {
     id: 1,
     name: "도쿄 타워",
@@ -34,14 +26,16 @@ const MOCK_PLACES = [
     cat: "자연",
     icon: "🌳",
   },
-];
+]; */
 
 const PlacesListPage = () => {
+  const navigate = useNavigate();
+
   const {
     data: places,
     isLoading,
     isError,
-  } = useQuery({
+  } = useQuery<Place[]>({
     queryKey: ["places"],
     queryFn: fetchPlaces,
   });
@@ -63,24 +57,33 @@ const PlacesListPage = () => {
       </h2>
 
       <div className="flex flex-col gap-3">
-        {MOCK_PLACES.map((place) => (
+        {places?.map((place) => (
           <div
             key={place.id}
+            onClick={() => navigate(`/places/${place.id}`)}
             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex gap-4 items-center active:scale-[0.98] transition-transform cursor-pointer"
           >
             <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center text-3xl shrink-0">
-              {place.icon}
+              {place.imageUrl ? (
+                <img
+                  src={place.imageUrl}
+                  alt={place.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                "📍"
+              )}
             </div>
             <div className="flex flex-col flex-1">
               <h3 className="text-base font-bold text-gray-900 mb-1">
                 {place.name}
               </h3>
               <p className="text-xs text-gray-500 mb-2 line-clamp-1">
-                {place.desc}
+                {place.description}
               </p>
               <div className="flex mt-auto">
                 <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded-md">
-                  {place.cat}
+                  {place.category}
                 </span>
               </div>
             </div>
