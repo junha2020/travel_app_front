@@ -1,41 +1,45 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { type Place } from "../types/placeTypes";
+import { type Plan } from "../types/planTypes";
 
-export interface PlanItem {
-  id: number;
-  name: string;
-  category: string;
-}
+type PlanItem = Pick<Place, "id" | "name" | "category">;
 
 interface PlanState {
-  // 아이템 배열
-  planItems: PlanItem[];
+  // 아이템 객체
+  plans: Record<number, PlanItem[]>;
   // 배열 통째로 바꿀 때
-  setPlanItems: (items: PlanItem[]) => void;
+  setPlanItems: (id: Plan["id"], items: PlanItem[]) => void;
   // 아이템 하나 추가할 때
   addPlanItem: (item: PlanItem) => void;
   // 아이템 하나 삭제할 때
-  removePlanItem: (id: number) => void;
+  removePlanItem: (id: Plan["id"]) => void;
 }
 
 const usePlanStore = create<PlanState>()(
   persist(
     (set) => ({
-      planItems: [],
-      setPlanItems: (items) => set({ planItems: items }),
+      plans: [],
+      setPlanItems: (id, items) =>
+        set((state) => ({
+          plans: {
+            ...state.plans,
+            [id]: items,
+          },
+        })),
       addPlanItem: (item) =>
         set((state) => {
-          const isAlreadyExist = state.planItems.find((p) => p.id === item.id);
+          const isAlreadyExist = state.plans[id].find;
 
           if (isAlreadyExist) {
             return state;
           }
 
-          return { planItems: [...state.planItems, item] };
+          return { plans: [...state.plans, item] };
         }),
       removePlanItem: (id) =>
         set((state) => ({
-          planItems: state.planItems.filter((item) => item.id !== id),
+          plans: state.plans.filter((item) => item.id !== id),
         })),
     }),
     {

@@ -1,19 +1,22 @@
 import { ChevronLeft, GripVertical, MapIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const PlannerPage = () => {
   const navigate = useNavigate();
+  const { planId } = useParams();
 
   return (
     <div className="flex flex-col h-full bg-white relative">
       <div className="flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0 z-20 shadow-sm">
         <button
-          onClick={() => navigate("/schedule")}
+          onClick={() => navigate("/backpack")}
           className="text-gray-900 p-1 rounded-full"
         >
           <ChevronLeft size={28} />
         </button>
-        <span className="text-base font-bold ml-2">대구 1박 2일 여행</span>
+        <span className="text-base font-bold ml-2">
+          대구 1박 2일 여행 (ID: {planId})
+        </span>
       </div>
 
       {/* 지도 영역 */}

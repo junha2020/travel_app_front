@@ -54,7 +54,7 @@ const BackpackPage = () => {
 
       <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6">
         <button
-          onClick={() => navigate("/editor")}
+          onClick={() => navigate("/planner/1")}
           className="w-full bg-gray-900 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98]"
         >
           <Calendar size={20} />이 장소들로 일정 짜기

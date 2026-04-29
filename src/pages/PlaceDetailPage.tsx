@@ -1,7 +1,8 @@
-import { ChevronLeft, MapPin, Plus, Star } from "lucide-react";
+import { Calendar, ChevronLeft, MapPin, Plus, Star, X } from "lucide-react";
 import usePlanStore from "../store/usePlanStore";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlaceDetail } from "../hooks/usePlaces";
+import { useState } from "react";
 
 /* const MOCK_PLACE = {
   id: 1,
@@ -13,6 +14,12 @@ import { usePlaceDetail } from "../hooks/usePlaces";
   desc: "대구 시민들의 영원한 휴식처. 오리배 타면서 힐링하기 좋고 야경이 미쳤음. 벚꽃 필 때 가면 사람 터짐.",
 }; */
 
+// 🚨 내 기존 일정 데이터 (가짜 데이터)
+const MOCK_MY_PLANS = [
+  { id: 1, title: "대구 1박 2일 먹방 꿀잼", date: "2026.04.10 - 04.11" },
+  { id: 2, title: "나홀로 경주 힐링 여행", date: "2026.05.01 - 05.03" },
+];
+
 const PlaceDetailPage = () => {
   const navigate = useNavigate();
 
@@ -23,6 +30,8 @@ const PlaceDetailPage = () => {
 
   const planItems = usePlanStore((state) => state.planItems);
   const addPlanItem = usePlanStore((state) => state.addPlanItem);
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const handleAddPlace = () => {
     if (!place) return;
@@ -40,6 +49,7 @@ const PlaceDetailPage = () => {
       category: place.category,
     });
     alert("추가되었습니다.");
+    setIsSheetOpen(false);
     navigate("/schedule/");
   };
 
@@ -104,12 +114,71 @@ const PlaceDetailPage = () => {
       {/* 하단 찜하기 버튼 */}
       <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6 shadow-[0_-10px_20px_rgba(0, 0, 0, 0.05">
         <button
-          onClick={handleAddPlace}
+          onClick={() => setIsSheetOpen(true)}
           className="w-full bg-blue-500 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98] transition-transform"
         >
           <Plus size={20} />내 일정에 담기
         </button>
       </div>
+      {/* 모달 영역 시작 */}
+      {isSheetOpen && (
+        <div className="absolute inset-0 z-50 flex flex-col justify-end">
+          {/* 배경 까맣게 */}
+          <div
+            className="absolute inset-0 bg-black/50 transition-opacity"
+            onClick={() => setIsSheetOpen(false)}
+          />
+
+          {/* 밑에서 올라오는 녀석 */}
+          <div className="relative bg-white rounded-t-2xl p-5 shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom-4 duration-200 pb-8">
+            {/* 타이틀 & 닫기 버튼 */}
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-bold text-gray-900">
+                어느 일정에 담을까요?
+              </h3>
+              <button
+                onClick={() => setIsSheetOpen(false)}
+                className="text-gray-400 hover:text-gray-900 p-1"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            {/* 새로운 일정 만들기 버튼 */}
+            <button className="flex items-center gap-3 p-4 rounded-xl borer border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left group">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                <Plus size={20} />
+              </div>
+              <div>
+                <span className="font-bold text-gray-900 block">
+                  새로운 일정 만들기
+                </span>
+                <span className="text-xs text-gray-500">
+                  새 여행을 계획하고 담아보세요
+                </span>
+              </div>
+            </button>
+
+            {/* 기존 내 일정 리스트 */}
+            <div className="max-h-[35vh] overflow-y-auto flex flex-col gap-2 mt-2">
+              <p className="text-xs font-bold text-gray-400 mb-1 px-1">
+                내 여행 일정
+              </p>
+              {MOCK_MY_PLANS.map((plan) => (
+                <button
+                  key={plan.id}
+                  onClick={handleAddPlace}
+                  className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gary-200"
+                >
+                  <span className="font-bold text-gray-900">{plan.title}</span>
+                  <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <Calendar size={12} /> {plan.date}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
