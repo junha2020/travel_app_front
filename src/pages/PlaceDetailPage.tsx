@@ -28,26 +28,31 @@ const PlaceDetailPage = () => {
 
   const { data: place, isLoading, isError } = usePlaceDetail(placeId);
 
-  const planItems = usePlanStore((state) => state.planItems);
+  const plans = usePlanStore((state) => state.plans);
   const addPlanItem = usePlanStore((state) => state.addPlanItem);
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleAddPlace = () => {
+  const handleAddPlace = (planId: number) => {
     if (!place) return;
 
-    const isAlreadyExist = planItems.find((p) => p.id === Number(place.id));
+    const currentPlanItems = plans[planId] || [];
+
+    const isAlreadyExist = currentPlanItems.find(
+      (p) => p.id === Number(place.id),
+    );
 
     if (isAlreadyExist) {
       alert("이미 담겨있습니다!");
       return;
     }
 
-    addPlanItem({
+    addPlanItem(planId, {
       id: Number(place.id),
       name: place.name,
       category: place.category,
     });
+
     alert("추가되었습니다.");
     setIsSheetOpen(false);
     navigate("/schedule/");
@@ -112,7 +117,7 @@ const PlaceDetailPage = () => {
       </div>
 
       {/* 하단 찜하기 버튼 */}
-      <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6 shadow-[0_-10px_20px_rgba(0, 0, 0, 0.05">
+      <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
         <button
           onClick={() => setIsSheetOpen(true)}
           className="w-full bg-blue-500 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98] transition-transform"
@@ -144,7 +149,7 @@ const PlaceDetailPage = () => {
               </button>
             </div>
             {/* 새로운 일정 만들기 버튼 */}
-            <button className="flex items-center gap-3 p-4 rounded-xl borer border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left group">
+            <button className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left group">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                 <Plus size={20} />
               </div>
@@ -166,8 +171,8 @@ const PlaceDetailPage = () => {
               {MOCK_MY_PLANS.map((plan) => (
                 <button
                   key={plan.id}
-                  onClick={handleAddPlace}
-                  className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gary-200"
+                  onClick={() => handleAddPlace(plan.id)}
+                  className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gray-200"
                 >
                   <span className="font-bold text-gray-900">{plan.title}</span>
                   <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">

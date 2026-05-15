@@ -31,7 +31,7 @@ function App() {
             <Route path="/find-account" element={<AccountRecoveryPage />} />
 
             {/* 여행 계획 관련 */}
-            <Route path="/backpack" element={<BackpackPage />} />
+            <Route path="/backpack/:planId" element={<BackpackPage />} />
             <Route path="/planner/:planId" element={<PlannerPage />} />
             <Route path="/schedule/:scheduleId" element={<MyPlansPage />} />
           </Routes>

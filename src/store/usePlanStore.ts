@@ -13,7 +13,7 @@ interface PlanState {
   // 아이템 하나 추가할 때
   addPlanItem: (planId: number, item: PlanItem) => void;
   // 아이템 하나 삭제할 때
-  removePlanItem: (planId: number, itemId: Plan["id"]) => void;
+  removePlanItem: (planId: number, itemId: number) => void;
   // 특정 일정 완전히 비우가
   clearPlan: (planId: number) => void;
 }
@@ -59,14 +59,10 @@ const usePlanStore = create<PlanState>()(
         set((state) => {
           const currentPlanItems = state.plans[planId] || [];
 
-          const updatedPlanItems = currentPlanItems.filter(
-            (item) => item.id !== itemId,
-          );
-
           return {
             plans: {
               ...state.plans,
-              [planId]: updatedPlanItems,
+              [planId]: currentPlanItems.filter((item) => item.id !== itemId),
             },
           };
         }),

@@ -9,7 +9,7 @@ const MyPlansPage = () => {
       {/* 상단 헤더 */}
       <div className="flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0 shadow-sm">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/", { replace: true })}
           className="p-1 rounded-full text-gray-900 active:scale-95 transition-transform"
         >
           <ChevronLeft size={28} />
