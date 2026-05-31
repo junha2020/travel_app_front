@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { UserSignUpRequestDTO } from "../types/userTypes";
 import { register } from "../api/authApi";
-import { ChevronLeft, UserPlus } from "lucide-react";
+import { ChevronLeft, UserPlus, Eye, EyeOff } from "lucide-react";
 
 const RegisterPage = () => {
   const [userName, setUserName] = useState("");
@@ -20,6 +20,12 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("비밀번호가 일치하지 않아요.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -60,58 +66,112 @@ const RegisterPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
             거의 다 왔어요!
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-sm mb-8">
             트리플과 함께할 계정을 만들어주세요.
           </p>
 
           {/* 입력 폼 */}
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
-                이름
-              </label>
-              <input
-                type="text"
-                placeholder="홍길동"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
                 아이디
               </label>
               <input
-                type="email"
-                placeholder="example@triple.com"
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="4~15자 아이디 입력"
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                required
               />
             </div>
+
             <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
+                닉네임
+              </label>
+              <input
+                type="text"
+                value={nickName}
+                onChange={(e) => setNickName(e.target.value)}
+                placeholder="활동할 닉네임을 입력해줘"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
+                이메일
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@triple.com"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                required
+              />
+            </div>
+
+            <div className="relative">
               <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
                 비밀번호
               </label>
-              <input
-                type="password"
-                placeholder="8자리 이상 영문, 숫자 조합"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type={isPasswordVisible ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="8자리 이상 영문, 숫자 조합"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors pr-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {isPasswordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
-            <div>
+
+            <div className="relative">
               <label className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
                 비밀번호 확인
               </label>
-              <input
-                type="password"
-                placeholder="비밀번호를 한번 더 입력해주세요"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type={isPasswordVisible ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="비밀번호를 한번 더 입력해주세요"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors pr-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {isPasswordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
-          </div>
-          {/* 가입 버튼 */}
-          <button className="w-full bg-blue-500 text-white font-bold rounded-xl py-4 mt-2 hover:bg-blue-600 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-sm shadow-blue-500/20">
-            <UserPlus size={20} />
-            가입 완료하기
-          </button>
+
+            {/* 에러 메시지 표시 영역 */}
+            {error && <p className="text-red-500 text-xs ml-1">{error}</p>}
+
+            {/* 가입 버튼 */}
+            <button
+              type="submit"
+              className="w-full bg-blue-500 text-white font-bold rounded-xl py-4 mt-2 hover:bg-blue-600 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-sm shadow-blue-500/20"
+            >
+              <UserPlus size={20} />
+              {isLoading ? "가입 중..." : "가입 완료하기"}
+            </button>
+          </form>
         </div>
       </div>
     </div>

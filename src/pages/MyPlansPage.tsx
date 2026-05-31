@@ -1,5 +1,6 @@
 import { CalendarPlus, ChevronLeft, Plane } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/useAuthStore";
 
 const MyPlansPage = () => {
   const navigate = useNavigate();

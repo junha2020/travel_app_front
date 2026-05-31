@@ -7,7 +7,7 @@ import type {
 
 // 공통 axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -37,15 +37,15 @@ export const register = async (
   signUpData: UserSignUpRequestDTO,
 ): Promise<UserResponseDTO> => {
   const response = await api.post<UserResponseDTO>(
-    "users/register",
+    "/users/register",
     signUpData,
   );
   return response.data;
 };
 
 // 내 정보 가져오기 API
-export const getMe = async (): Promise<UserResponseDTO> => {
-  const response = await api.get<UserResponseDTO>("/users/me");
+export const getMe = async (userId: number): Promise<UserResponseDTO> => {
+  const response = await api.get<UserResponseDTO>(`/users/me?userId=${userId}`);
   return response.data;
 };
 
