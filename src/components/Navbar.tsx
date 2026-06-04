@@ -30,10 +30,10 @@ const Navbar = () => {
         <span>장소</span>
       </button>
       <button
-        onClick={() => navigate("/login")}
-        className={`flex flex-col items-center gap-1 w-16 pt-2 ${getIconColor("/login")}`}
+        onClick={() => navigate("/my")}
+        className={`flex flex-col items-center gap-1 w-16 pt-2 ${getIconColor("/my")}`}
       >
-        <User size={22} strokeWidth={getStrokeWidth("/login")} />
+        <User size={22} strokeWidth={getStrokeWidth("/my")} />
         <span>마이</span>
       </button>
     </nav>

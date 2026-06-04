@@ -1,61 +1,45 @@
 import { Calendar, ChevronLeft, MapPin, Plus, Star, X } from "lucide-react";
-import usePlanStore from "../store/usePlanStore";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlaceDetail } from "../hooks/usePlaces";
 import { useState } from "react";
-
-/* const MOCK_PLACE = {
-  id: 1,
-  name: "수성못",
-  category: "관광지",
-  rating: 4.8,
-  reviews: 1024,
-  address: "대구광역시 수성구 두산동",
-  desc: "대구 시민들의 영원한 휴식처. 오리배 타면서 힐링하기 좋고 야경이 미쳤음. 벚꽃 필 때 가면 사람 터짐.",
-}; */
-
-// 🚨 내 기존 일정 데이터 (가짜 데이터)
-const MOCK_MY_PLANS = [
-  { id: 1, title: "대구 1박 2일 먹방 꿀잼", date: "2026.04.10 - 04.11" },
-  { id: 2, title: "나홀로 경주 힐링 여행", date: "2026.05.01 - 05.03" },
-];
+import { useAuthStore } from "../store/useAuthStore";
+import { useQuery } from "@tanstack/react-query";
+import { planApi } from "../api/planApi";
 
 const PlaceDetailPage = () => {
-  const navigate = useNavigate();
+  const Maps = useNavigate();
 
   const { id } = useParams();
   const placeId = Number(id);
 
   const { data: place, isLoading, isError } = usePlaceDetail(placeId);
 
-  const plans = usePlanStore((state) => state.plans);
-  const addPlanItem = usePlanStore((state) => state.addPlanItem);
+  const { user } = useAuthStore();
+
+  const { data: myPlans = [] } = useQuery({
+    queryKey: ["userPlans", user?.id || user?.userid],
+    queryFn: () => planApi.getUserPlans(user?.id || user?.userid || 0),
+    enabled: !!(user?.id || user?.userid),
+  });
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const handleAddPlace = (planId: number) => {
+  const handleAddPlace = async (planId: number) => {
     if (!place) return;
 
-    const currentPlanItems = plans[planId] || [];
+    try {
+      await planApi.addPlaceToPlan(planId, {
+        placeId: Number(place.id),
+        day: 1,
+      });
 
-    const isAlreadyExist = currentPlanItems.find(
-      (p) => p.id === Number(place.id),
-    );
-
-    if (isAlreadyExist) {
-      alert("이미 담겨있습니다!");
-      return;
+      alert("추가되었습니다.");
+      setIsSheetOpen(false);
+      Maps(`/planner/${planId}`);
+    } catch (error) {
+      console.error("장소 추가 에러:", error);
+      alert("장소를 일정에 추가하는 데 실패했습니다.");
     }
-
-    addPlanItem(planId, {
-      id: Number(place.id),
-      name: place.name,
-      category: place.category,
-    });
-
-    alert("추가되었습니다.");
-    setIsSheetOpen(false);
-    navigate("/schedule/");
   };
 
   if (isLoading)
@@ -73,7 +57,7 @@ const PlaceDetailPage = () => {
     <div className="flex flex-col h-full bg-white relative">
       {/* 뒤로가기 버튼 */}
       <button
-        onClick={() => navigate("/places")}
+        onClick={() => Maps("/places")}
         className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm active:scale-95"
       >
         <ChevronLeft size={24} />
@@ -149,7 +133,10 @@ const PlaceDetailPage = () => {
               </button>
             </div>
             {/* 새로운 일정 만들기 버튼 */}
-            <button className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left group">
+            <button
+              onClick={() => Maps("/create-plan")}
+              className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left group"
+            >
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                 <Plus size={20} />
               </div>
@@ -168,18 +155,24 @@ const PlaceDetailPage = () => {
               <p className="text-xs font-bold text-gray-400 mb-1 px-1">
                 내 여행 일정
               </p>
-              {MOCK_MY_PLANS.map((plan) => (
-                <button
-                  key={plan.id}
-                  onClick={() => handleAddPlace(plan.id)}
-                  className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gray-200"
-                >
-                  <span className="font-bold text-gray-900">{plan.title}</span>
-                  <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                    <Calendar size={12} /> {plan.date}
-                  </span>
-                </button>
-              ))}
+              {myPlans && myPlans.length > 0 ? (
+                myPlans.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => handleAddPlace(plan.id)}
+                    className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gray-200"
+                  >
+                    <span className="font-bold text-gray-900">{plan.title}</span>
+                    <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <Calendar size={12} /> {plan.startDate} - {plan.endDate}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-6 text-sm text-gray-400">
+                  등록된 일정이 없습니다.
+                </div>
+              )}
             </div>
           </div>
         </div>

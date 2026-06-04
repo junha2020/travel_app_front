@@ -12,6 +12,7 @@ export interface UserSignUpRequestDTO {
 
 export interface UserResponseDTO {
   userid: number;
+  id?: number;
   userName: string;
   email: string;
   nickName: string;

@@ -9,6 +9,8 @@ import BackpackPage from "./pages/BackpackPage";
 import PlannerPage from "./pages/PlannerPage";
 import MyPlansPage from "./pages/MyPlansPage";
 import AccountRecoveryPage from "./pages/AccountRecoveryPage";
+import PlanCreatePage from "./pages/PlanCreatePage";
+
 
 function App() {
   return (
@@ -31,9 +33,11 @@ function App() {
             <Route path="/find-account" element={<AccountRecoveryPage />} />
 
             {/* 여행 계획 관련 */}
+            <Route path="/create-plan" element={<PlanCreatePage />} />
             <Route path="/backpack/:planId" element={<BackpackPage />} />
             <Route path="/planner/:planId" element={<PlannerPage />} />
             <Route path="/schedule/:scheduleId" element={<MyPlansPage />} />
+            <Route path="/my" element={<MyPlansPage />} />
           </Routes>
         </main>
         <Navbar />

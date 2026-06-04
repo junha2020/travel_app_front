@@ -1,32 +1,88 @@
-import { ChevronLeft, GripVertical, MapIcon } from "lucide-react";
+import { ChevronLeft, GripVertical, MapIcon, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMemo } from "react";
-import usePlanStore from "../store/usePlanStore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { planApi } from "../api/planApi";
 
 const PlannerPage = () => {
   const navigate = useNavigate();
   const { planId } = useParams();
+  const queryClient = useQueryClient();
 
   const currentPlanId = Number(planId);
 
-  const plans = usePlanStore((state) => state.plans);
+  const { data: plan, isLoading, error } = useQuery({
+    queryKey: ["plan", currentPlanId],
+    queryFn: () => planApi.getPlanById(currentPlanId),
+    enabled: !isNaN(currentPlanId),
+  });
 
-  const currentItems = useMemo(() => {
-    return plans[currentPlanId] || [];
-  }, [plans, currentPlanId]);
+  const deletePlanMutation = useMutation({
+    mutationFn: (id: number) => planApi.deletePlan(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userPlans"] });
+      navigate("/my");
+    },
+    onError: (err) => {
+      console.error("일정 삭제 오류:", err);
+      alert("일정 삭제에 실패했어 ㅠㅠ");
+    },
+  });
+
+  const handleDelete = () => {
+    if (window.confirm("정말 이 일정을 삭제하시겠습니까?")) {
+      deletePlanMutation.mutate(currentPlanId);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-white">
+        <div className="text-center text-gray-500 font-medium">
+          일정을 열심히 불러오는 중이야... 잠시만! ⏳
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !plan) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-white px-6 text-center">
+        <div className="text-gray-500 font-medium mb-4">
+          일정을 불러오는 도중에 문제가 생겼어 ㅠㅠ
+        </div>
+        <button
+          onClick={() => navigate("/my")}
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"
+        >
+          내 일정 목록으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
+  const currentItems = plan.places || [];
 
   return (
     <div className="flex flex-col h-full bg-white relative">
-      <div className="flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0 z-20 shadow-sm">
+      <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 bg-white shrink-0 z-20 shadow-sm">
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate(`/backpack/${planId}`)}
+            className="text-gray-900 p-1 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeft size={28} />
+          </button>
+          <span className="text-base font-bold ml-2">
+            {plan.title} (ID: {planId})
+          </span>
+        </div>
         <button
-          onClick={() => navigate(`/backpack/${planId}`)}
-          className="text-gray-900 p-1 rounded-full"
+          onClick={handleDelete}
+          className="text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
+          title="일정 삭제"
         >
-          <ChevronLeft size={28} />
+          <Trash2 size={20} />
         </button>
-        <span className="text-base font-bold ml-2">
-          대구 1박 2일 여행 (ID: {planId})
-        </span>
       </div>
 
       {/* 지도 영역 */}
@@ -40,10 +96,10 @@ const PlannerPage = () => {
         </div>
       </div>
 
-      {/* 일정 편접 영역 */}
+      {/* 일정 편집 영역 */}
       <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
         {/* Day */}
-        <div className="flex bg-white border- border-gray-200 shrink-0 px2- pt-2">
+        <div className="flex bg-white border-b border-gray-200 shrink-0 px-2 pt-2">
           <button className="flex-1 pb-3 text-sm font-bold text-blue-500 border-b-2 border-blue-500">
             Day 1
           </button>
@@ -52,7 +108,7 @@ const PlannerPage = () => {
           </button>
         </div>
 
-        {/* 일정 리스트. 여기에 dnd-kit 들어감 */}
+        {/* 일정 리스트 */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 pb-20">
           {currentItems.length === 0 ? (
             <div className="text-center text-gray-400 mt-10 text-sm font-bold">
@@ -60,7 +116,7 @@ const PlannerPage = () => {
             </div>
           ) : (
             currentItems.map((item, index) => (
-              <div key={item.id} className="flex items-stretch gap-3">
+              <div key={item.planPlaceId || item.placeId} className="flex items-stretch gap-3">
                 <div className="flex flex-col items-center w-6 shrink-0 mt-2">
                   <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">
                     {index + 1}
@@ -77,7 +133,7 @@ const PlannerPage = () => {
                   />
                   <div>
                     <h4 className="font-bold text-sm">{item.name}</h4>
-                    <p className="text-[10px] text-gray-400">{item.category}</p>
+                    <p className="text-[10px] text-gray-400">{item.address}</p>
                   </div>
                 </div>
               </div>
@@ -90,3 +146,4 @@ const PlannerPage = () => {
 };
 
 export default PlannerPage;
+
