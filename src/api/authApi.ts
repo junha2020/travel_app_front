@@ -49,9 +49,32 @@ export const getMe = async (userId: number): Promise<UserResponseDTO> => {
   return response.data;
 };
 
+// 아이디 찾기 API 호출
+export const findUsername = async (data: {
+  nickName: string;
+  email: string;
+}) => {
+  const response = await api.post<{ userName: string; email: string }>(
+    "/users/find-username",
+    data,
+  );
+  return response.data;
+};
+
+// 비밀번호 재설정 API 호출
+export const resetPassword = async (data: { email: string }) => {
+  const response = await api.post<{ message: string; tempPassword: string }>(
+    "/users/reset-password",
+    data,
+  );
+  return response.data;
+};
+
 // 내보내기
 export const authApi = {
   login,
   register,
   getMe,
+  findUsername,
+  resetPassword,
 };

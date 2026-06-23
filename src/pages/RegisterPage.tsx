@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { UserSignUpRequestDTO } from "../types/userTypes";
 import { register } from "../api/authApi";
 import { ChevronLeft, UserPlus, Eye, EyeOff } from "lucide-react";
+import axios from "axios";
 
 const RegisterPage = () => {
   const [userName, setUserName] = useState("");
@@ -40,10 +41,13 @@ const RegisterPage = () => {
       alert("회원가입 성공! 로그인 페이지로 이동합니다.");
       navigate("/login");
     } catch (err) {
-      setError((err as Error).message);
+      if (axios.isAxiosError(err) && err.response) {
+        // 백엔드에서 보낸 에러 메시지를 꺼내서 보여줌
+        setError(err.response.data as string);
+      } else {
+        setError((err as Error).message);
+      }
       console.error(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -134,7 +134,14 @@ const PlaceDetailPage = () => {
             </div>
             {/* 새로운 일정 만들기 버튼 */}
             <button
-              onClick={() => Maps("/create-plan")}
+              onClick={() =>
+                Maps("/create-plan", {
+                  state: {
+                    placeId: place.id,
+                    placeName: place.name,
+                  },
+                })
+              }
               className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors text-left group"
             >
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
@@ -162,7 +169,9 @@ const PlaceDetailPage = () => {
                     onClick={() => handleAddPlace(plan.id)}
                     className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gray-200"
                   >
-                    <span className="font-bold text-gray-900">{plan.title}</span>
+                    <span className="font-bold text-gray-900">
+                      {plan.title}
+                    </span>
                     <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                       <Calendar size={12} /> {plan.startDate} - {plan.endDate}
                     </span>
