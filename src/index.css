@@ -11,3 +11,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+.custom-numbered-pin {
+  background: none !important;
+  border: none !important;
+}

@@ -5,7 +5,7 @@ import usePlanStore from "../store/usePlanStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { backpackApi } from "../api/backpackApi";
 
-const BackpackPage = () => {
+const BookmarkListPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -123,4 +123,4 @@ const BackpackPage = () => {
   );
 };
 
-export default BackpackPage;
+export default BookmarkListPage;

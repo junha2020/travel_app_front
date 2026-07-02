@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useQuery } from "@tanstack/react-query";
 import { planApi } from "../api/planApi";
 
-const MyPlansPage = () => {
+const PlanListPage = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
@@ -17,10 +17,14 @@ const MyPlansPage = () => {
   };
 
   // 1. useQuery를 사용해서 사용자 여행 일정 가져오기
-  const { data: plans, isLoading, error } = useQuery({
-    queryKey: ["userPlans", user?.id],
-    queryFn: () => planApi.getUserPlans(user!.id!),
-    enabled: !!user?.id,
+  const {
+    data: plans,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["userPlans", user?.userid || user?.id],
+    queryFn: () => planApi.getUserPlans(user!.userid || user!.id || 0),
+    enabled: !!(user?.userid || user?.id),
   });
 
   // 2. 얼리 리턴: user가 없으면(null이면) 로그인 안내 UI 반환
@@ -165,7 +169,9 @@ const MyPlansPage = () => {
         /* 카드 리스트 렌더링 */
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
           <div className="flex justify-between items-center px-1">
-            <span className="text-sm font-semibold text-gray-500">전체 일정 {plans.length}개</span>
+            <span className="text-sm font-semibold text-gray-500">
+              전체 일정 {plans.length}개
+            </span>
             <button
               onClick={() => navigate("/create-plan")}
               className="text-xs font-bold text-blue-500 flex items-center gap-1 hover:underline"
@@ -180,7 +186,9 @@ const MyPlansPage = () => {
                 onClick={() => navigate(`/planner/${plan.id}`)}
                 className="bg-white rounded-2xl p-4 border border-gray-150 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 active:scale-[0.99] flex flex-col gap-1.5"
               >
-                <h3 className="text-base font-bold text-gray-900 tracking-tight">{plan.title}</h3>
+                <h3 className="text-base font-bold text-gray-900 tracking-tight">
+                  {plan.title}
+                </h3>
                 <div className="text-xs text-gray-400 font-medium flex items-center gap-1.5">
                   <span>{plan.startDate}</span>
                   <span>~</span>
@@ -195,4 +203,4 @@ const MyPlansPage = () => {
   );
 };
 
-export default MyPlansPage;
+export default PlanListPage;

@@ -1,7 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const SUPPORTED_CITIES = ["도쿄", "오사카", "후쿠오카", "삿포로"];
 
 const HomePage = () => {
+  const navigate = useNavigate();
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const keyword = searchKeyword.trim();
+    if (!keyword) return;
+
+    const matchedCity = SUPPORTED_CITIES.find(
+      (city) => keyword.includes(city) || city.includes(keyword),
+    );
+
+    if (matchedCity) {
+      navigate(`/city/${matchedCity}`);
+    } else {
+      navigate(`places?search=${encodeURIComponent(keyword)}`);
+    }
+  };
+
   return (
     <div className="p-5 flex flex-col gap-6 bg-white min-h-full">
       <div className="mt-4">
@@ -13,14 +35,16 @@ const HomePage = () => {
         </p>
       </div>
 
-      <div className="relative">
+      <form onSubmit={handleSearchSubmit} className="relative">
         <input
           type="text"
           placeholder="도시나 장소를 검색해보세요"
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
           className="w-full bg-gray-100 rounded-xl py-3.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
         />
         <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
-      </div>
+      </form>
       <div>
         <h2 className="text-lg font-bold mb-3 text-gray-900">
           🔥 요즘 뜨는 여행지

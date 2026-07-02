@@ -1,16 +1,16 @@
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
-import PlacesListPage from "./pages/PlacesListPage";
+import PlaceListPage from "./pages/PlaceListPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import PlaceDetailPage from "./pages/PlaceDetailPage";
 import { Routes, Route } from "react-router-dom";
-import BackpackPage from "./pages/BackpackPage";
-import PlannerPage from "./pages/PlannerPage";
-import MyPlansPage from "./pages/MyPlansPage";
-import AccountRecoveryPage from "./pages/AccountRecoveryPage";
+import BookmarkListPage from "./pages/BookmarkListPage";
+import PlanDetailPage from "./pages/PlanDetailPage";
+import PlanListPage from "./pages/PlanListPage";
+import FindAccountPage from "./pages/FindAccountPage";
 import PlanCreatePage from "./pages/PlanCreatePage";
-
+import CityDetailPage from "./pages/CityDetailPage";
 
 function App() {
   return (
@@ -22,22 +22,23 @@ function App() {
         <main className="flex-1 overflow-y-auto pb-[64px] bg-white">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/city/:cityName" element={<CityDetailPage />} />
 
             {/* 장소 관련 */}
-            <Route path="/places" element={<PlacesListPage />} />
+            <Route path="/places" element={<PlaceListPage />} />
             <Route path="/places/:id" element={<PlaceDetailPage />} />
 
             {/* 인증 관련 */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/find-account" element={<AccountRecoveryPage />} />
+            <Route path="/find-account" element={<FindAccountPage />} />
 
             {/* 여행 계획 관련 */}
             <Route path="/create-plan" element={<PlanCreatePage />} />
-            <Route path="/backpack/:planId" element={<BackpackPage />} />
-            <Route path="/planner/:planId" element={<PlannerPage />} />
-            <Route path="/schedule/:scheduleId" element={<MyPlansPage />} />
-            <Route path="/my" element={<MyPlansPage />} />
+            <Route path="/backpack/:planId" element={<BookmarkListPage />} />
+            <Route path="/planner/:planId" element={<PlanDetailPage />} />
+            <Route path="/schedule/:scheduleId" element={<PlanListPage />} />
+            <Route path="/my" element={<PlanListPage />} />
           </Routes>
         </main>
         <Navbar />

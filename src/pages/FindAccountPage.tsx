@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { findUsername, resetPassword } from "../api/authApi";
 import type { AxiosError } from "axios";
 
-const AccountRecoveryPage = () => {
+const FindAccountPage = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState("id");
 
@@ -150,4 +150,4 @@ const AccountRecoveryPage = () => {
   );
 };
 
-export default AccountRecoveryPage;
+export default FindAccountPage;
