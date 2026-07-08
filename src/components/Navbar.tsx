@@ -1,4 +1,3 @@
-import React from "react";
 import { Home, MapPin, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 

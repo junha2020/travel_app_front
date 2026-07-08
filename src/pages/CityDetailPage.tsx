@@ -1,5 +1,4 @@
 import { ChevronLeft, Compass, Info, MapPin } from "lucide-react";
-import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 interface CityInfo {

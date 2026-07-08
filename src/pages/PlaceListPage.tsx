@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchPlaces, searchPlacesByName } from "../api/placeApi";
 import { ChevronLeft, ChevronRight, Map, Search } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { type Place } from "../types/placeTypes";
 import React, { useEffect, useState } from "react";
 
 /* const MOCK_PLACES = [
@@ -33,18 +32,30 @@ const PlaceListPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSearchQuery = searchParams.get("search") || "";
+  const urlPageQuery = Math.max(
+    0,
+    parseInt(searchParams.get("page") || "1") - 1,
+  );
 
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(urlPageQuery);
   const [searchInput, setSearchInput] = useState(urlSearchQuery); // URL 검색어가 있으면 초기값으로 이식
   const [activeSearch, setActiveSearch] = useState(urlSearchQuery); // URL 검색어가 있으면 초기 API 필터값으로 이식
   const [selectedCategory, setSelectedCategory] = useState("전체"); // 카테고리 필터
 
-  // URL의 쿼리 파라미터가 변경되면 컴포넌트 상태 실시간으로 링크
+  // URL의 쿼리 파라미터(검색어 혹은 페이지 번호)가 변경되면 컴포넌트 상태 실시간으로 링크
   useEffect(() => {
     setSearchInput(urlSearchQuery);
     setActiveSearch(urlSearchQuery);
-    setCurrentPage(0);
-  }, [urlSearchQuery]);
+    setCurrentPage(urlPageQuery);
+  }, [urlSearchQuery, urlPageQuery]);
+
+  // 페이지 전환 핸들러 함수 신설
+  const handlePageChange = (newPage: number) => {
+    // 주소창의 쿼리 스트링을 업데이트하여 상태를 갱신
+    const params = new URLSearchParams(searchParams);
+    params.set("page", (newPage + 1).toString());
+    navigate(`/places?${params.toString()}`);
+  };
 
   const pageSize = 5;
 
@@ -91,7 +102,7 @@ const PlaceListPage = () => {
     );
 
   const rawPlaces = data?.content || []; // 실제 데이터 배열
-  const totalPages = data?.totalPages; // 전체 페이지 수
+  const totalPages = data?.totalPages || 1; // 전체 페이지 수
 
   const places =
     selectedCategory === "전체"
@@ -204,7 +215,7 @@ const PlaceListPage = () => {
       {!activeSearch && (
         <div className="flex justify-center items-center gap-4 mt-8">
           <button
-            onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+            onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
             className="p-2 border border-gray-200 rounded-xl bg-white text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all"
           >
@@ -217,7 +228,7 @@ const PlaceListPage = () => {
 
           <button
             onClick={() =>
-              setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+              handlePageChange(Math.min(totalPages - 1, currentPage + 1))
             }
             disabled={currentPage >= totalPages - 1}
             className="p-2 border border-gray-200 rounded-xl bg-white text-gray-600 hover:bg-gray-50 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all"

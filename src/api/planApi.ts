@@ -7,6 +7,11 @@ export interface UpdatePlaceSequenceDTO {
   sequence: number;
 }
 
+export interface AddPlaceRequestDTO {
+  placeId: number;
+  day: number;
+}
+
 // 공통 axios 인스턴스 생성
 const api = axios.create({
   baseURL: "/api",
@@ -73,6 +78,14 @@ export const updatePlacesSequence = async (
   await api.put<void>(`/plans/${planId}/places/sequence`, sequenceData);
 };
 
+// POST /api/plans/{planId}/places/bulk API 호출 함수 추가
+export const addPlacesToPlanBulk = async (
+  planId: number,
+  data: AddPlaceRequestDTO[],
+): Promise<void> => {
+  await api.post<void>(`/plans/${planId}/places/bulk`, data);
+};
+
 export const planApi = {
   createPlan,
   getUserPlans,
@@ -81,4 +94,5 @@ export const planApi = {
   deletePlan,
   removePlaceFromPlan,
   updatePlacesSequence,
+  addPlacesToPlanBulk,
 };

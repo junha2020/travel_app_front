@@ -9,4 +9,5 @@ export interface Place {
   category: string;
   rating: number;
   review: string;
+  reviews?: number;
 }

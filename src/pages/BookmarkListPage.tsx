@@ -1,9 +1,9 @@
 import { Calendar, ChevronLeft, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMemo } from "react";
-import usePlanStore from "../store/usePlanStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { backpackApi } from "../api/backpackApi";
+import { useState } from "react";
+import { planApi } from "../api/planApi";
 
 const BookmarkListPage = () => {
   const navigate = useNavigate();
@@ -12,7 +12,38 @@ const BookmarkListPage = () => {
   const { planId } = useParams();
   const currentPlanId = Number(planId) || 1;
 
-  // 1. 찜 목록 조회
+  // 선택된 장소 ID 보관
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  // 체크박스 토글 핸들러
+  const handleToggleSelect = (placeId: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(placeId)
+        ? prev.filter((id) => id !== placeId)
+        : [...prev, placeId],
+    );
+  };
+
+  // 일괄 추가 Mutation
+  const bulkAddMutation = useMutation({
+    mutationFn: async () => {
+      const payload = selectedIds.map((placeId) => ({
+        placeId,
+        day: 1, // 기본 1일차
+      }));
+      // planApi에 실설한 bulk API 호출
+      await planApi.addPlacesToPlanBulk(currentPlanId, payload);
+    },
+    onSuccess: () => {
+      alert("선택한 장소들이 일정에 성공적으로 추가되었습니다!");
+      navigate(`/planner/${currentPlanId}`);
+    },
+    onError: (err: any) => {
+      alert("일정 추가 실패: " + (err.response?.data?.message || err.message));
+    },
+  });
+
+  // 찜 목록 조회
   const {
     data: planItems = [],
     isLoading,
@@ -22,7 +53,7 @@ const BookmarkListPage = () => {
     queryFn: backpackApi.getBackpackList,
   });
 
-  // 2. 찜 해제 액션
+  // 찜 해제 액션
   const deleteMutation = useMutation({
     mutationFn: backpackApi.removeBookmark,
     onSuccess: () => {
@@ -90,6 +121,13 @@ const BookmarkListPage = () => {
                 key={item.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex gap-4 items-center"
               >
+                {/* 체크박스 영역 */}
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(item.id)}
+                  onChange={() => handleToggleSelect(item.id)}
+                  className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-400 shrink-0 cursor-pointer"
+                />
                 <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-2xl">
                   📍
                 </div>
@@ -113,10 +151,20 @@ const BookmarkListPage = () => {
       {/* 하단 버튼 */}
       <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6">
         <button
-          onClick={() => navigate(`/planner/${currentPlanId}`)}
-          className="w-full bg-gray-900 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98]"
+          onClick={() => {
+            if (selectedIds.length > 0) {
+              bulkAddMutation.mutate(); // 선택한 장소가 있으면 벌크로 저장 후 이동
+            } else {
+              navigate(`/planner/${currentPlanId}`); // 선택한 장소가 없으면 그냥 플래너로 이동
+            }
+          }}
+          disabled={bulkAddMutation.isPending}
+          className="w-full bg-gray-900 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98] transition-all"
         >
-          <Calendar size={20} />이 장소들로 일정 짜기
+          <Calendar size={20} />
+          {selectedIds.length > 0
+            ? `${selectedIds.length}개의 장소 일정에 담기`
+            : "내 일정표 보러 가기"}
         </button>
       </div>
     </div>

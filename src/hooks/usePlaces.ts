@@ -12,20 +12,22 @@ export const usePlaceDetail = (id: number | undefined) => {
   });
 };
 
-const usePlaces = () => {
+const usePlaces = (planId?: number) => {
   // 전역 스토어 (Zustand)에서 상태와 액션 가져오기
-  const planItems = usePlanStore((state) => state.planItems);
+  const planItems =
+    usePlanStore((state) => (planId ? state.plans[planId] : [])) || [];
   const addPlanItem = usePlanStore((state) => state.addPlanItem);
   const removePlanItem = usePlanStore((state) => state.removePlanItem);
 
   // 장소를 내 일정에 추가하는 함수
   const addPlaceToPlan = (place: Place) => {
+    if (!planId) return;
     const newItem: PlanItem = {
       id: Number(place.id),
       name: place.name,
       category: place.category,
     };
-    addPlanItem(newItem);
+    addPlanItem(planId, newItem);
   };
 
   // 내 전체 일정 목록 조회 (React Query)
@@ -53,7 +55,9 @@ const usePlaces = () => {
     serverPlans,
     isLoading,
     addPlanItem: addPlaceToPlan,
-    removePlanItem,
+    removePlanItem: (itemId: number) => {
+      if (planId) removePlanItem(planId, itemId);
+    },
     saveFinalPlan: saveMutation.mutate,
   };
 };

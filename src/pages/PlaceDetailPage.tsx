@@ -1,13 +1,23 @@
-import { Calendar, ChevronLeft, MapPin, Plus, Star, X } from "lucide-react";
+import {
+  Calendar,
+  ChevronLeft,
+  Heart,
+  MapPin,
+  Plus,
+  Star,
+  X,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePlaceDetail } from "../hooks/usePlaces";
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { planApi } from "../api/planApi";
+import { backpackApi } from "../api/backpackApi";
 
 const PlaceDetailPage = () => {
   const Maps = useNavigate();
+  const queryClient = useQueryClient();
 
   const { id } = useParams();
   const placeId = Number(id);
@@ -15,6 +25,37 @@ const PlaceDetailPage = () => {
   const { data: place, isLoading, isError } = usePlaceDetail(placeId);
 
   const { user } = useAuthStore();
+
+  // 내 배낭(찜) 목록 조회 쿼리 추가
+  const { data: backpackList = [] } = useQuery({
+    queryKey: ["backpackList"],
+    queryFn: backpackApi.getBackpackList,
+    enabled: !!user, // 로그인 한 상태일 때만 호출
+  });
+
+  // 현재 장소가 이미 찜한 상태인지 확인
+  const isBookmarked = backpackList.some((item) => item.id === placeId);
+
+  // 찜하기 토글 Mutation 추가
+  const toggleBookmarkMutation = useMutation({
+    mutationFn: async () => {
+      if (isBookmarked) {
+        await backpackApi.removeBookmark(placeId);
+      } else {
+        await backpackApi.addBookmark(placeId);
+      }
+    },
+    onSuccess: () => {
+      // 성공 시 찜 캐시 목록 새로고침 해 하트 아이콘 상태 실시간 동기화
+      queryClient.invalidateQueries({ queryKey: ["backpackList"] });
+    },
+    onError: (err: any) => {
+      alert(
+        "찜하기 처리에 실패했습니다: " +
+          (err.response?.data?.message || err.message),
+      );
+    },
+  });
 
   const { data: myPlans = [] } = useQuery({
     queryKey: ["userPlans", user?.id || user?.userid],
@@ -57,7 +98,7 @@ const PlaceDetailPage = () => {
     <div className="flex flex-col h-full bg-white relative">
       {/* 뒤로가기 버튼 */}
       <button
-        onClick={() => Maps("/places")}
+        onClick={() => Maps(-1)}
         className="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm active:scale-95"
       >
         <ChevronLeft size={24} />
@@ -100,11 +141,28 @@ const PlaceDetailPage = () => {
         </p>
       </div>
 
-      {/* 하단 찜하기 버튼 */}
-      <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+      {/* 하단 버튼 콤보 영역 (찜하기 하트 + 일정에 담기) */}
+      <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 p-4 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] flex gap-3 z-20">
+        {/* 찜하기 토글 (하트) 버튼 */}
+        <button
+          onClick={() => toggleBookmarkMutation.mutate()}
+          disabled={toggleBookmarkMutation.isPending}
+          className="w-14 h-14 rounded-xl border border-gray-200 flex items-center justify-center shrink-0 active:scale-95 transition-all bg-white hover:bg-gray-50"
+        >
+          <Heart
+            size={24}
+            className={`transition-all duration-200 ${
+              isBookmarked
+                ? "fill-red-500 text-red-500 scale-110"
+                : "text-gray-400"
+            }`}
+          />
+        </button>
+
+        {/* 일정에 담기 버튼 */}
         <button
           onClick={() => setIsSheetOpen(true)}
-          className="w-full bg-blue-500 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98] transition-transform"
+          className="flex-1 bg-blue-500 text-white font-bold rounded-xl py-4 flex justify-center items-center gap-2 active:scale-[0.98] transition-transform"
         >
           <Plus size={20} />내 일정에 담기
         </button>

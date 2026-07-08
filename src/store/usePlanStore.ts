@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { type Place } from "../types/placeTypes";
-import { type Plan } from "../types/planTypes";
 
 export type PlanItem = Pick<Place, "id" | "name" | "category">;
 

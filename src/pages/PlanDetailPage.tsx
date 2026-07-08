@@ -196,7 +196,7 @@ const PlanDetailPage = () => {
     updatedList.splice(dropIndex, 0, draggedItem);
 
     // 변경된 리스트의 sequence 번호 재할당
-    const reorderedList = updatedList.map((index, idx) => ({
+    const reorderedList = updatedList.map((item, idx) => ({
       planPlaceId: item.planPlaceId,
       day: item.day,
       sequence: idx + 1,
