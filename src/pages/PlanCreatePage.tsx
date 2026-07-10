@@ -3,9 +3,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, MapPin, Calendar, Compass, Send } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { planApi } from "../api/planApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PlanCreatePage = () => {
   const Maps = useNavigate();
+  const queryClient = useQueryClient();
   const location = useLocation();
 
   // 넘어온 state 보따리 해체
@@ -61,6 +63,8 @@ const PlanCreatePage = () => {
           `일정(ID: ${newPlan.id})에 장소(ID: ${placeId}) 자동 추가 완료!`,
         );
       }
+
+      queryClient.invalidateQueries({ queryKey: ["userPlans"] });
 
       alert("여행 일정이 생성되었습니다! 플래너로 이동합니다.");
       Maps("/planner/" + newPlan.id);

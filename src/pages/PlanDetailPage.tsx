@@ -1,4 +1,10 @@
-import { ChevronLeft, GripVertical, Trash, Trash2 } from "lucide-react";
+import {
+  Briefcase,
+  ChevronLeft,
+  GripVertical,
+  Trash,
+  Trash2,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { planApi, type UpdatePlaceSequenceDTO } from "../api/planApi";
@@ -253,7 +259,7 @@ const PlanDetailPage = () => {
       ...otherDayPlaces,
       movedItemPayload,
       ...targetDayPlaces.map((item, idx) => ({
-        planPlaceId: planPlaceId,
+        planPlaceId: item.planPlaceId,
         day: item.day,
         sequence: idx + 1,
       })),
@@ -274,7 +280,7 @@ const PlanDetailPage = () => {
       <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 bg-white shrink-0 z-20 shadow-sm">
         <div className="flex items-center">
           <button
-            onClick={() => navigate(`/backpack/${planId}`)}
+            onClick={() => navigate(`/my`)}
             className="text-gray-900 p-1 rounded-full hover:bg-gray-100 transition-colors"
           >
             <ChevronLeft size={28} />
@@ -283,13 +289,23 @@ const PlanDetailPage = () => {
             {plan.title} (ID: {planId})
           </span>
         </div>
-        <button
-          onClick={handleDeletePlan}
-          className="text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
-          title="일정 삭제"
-        >
-          <Trash2 size={20} />
-        </button>
+        {/* 우측 상단 기능 버튼 세트 (배낭 보관함 이동 및 일정 삭제) */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => navigate(`/backpack/${planId}`)}
+            className="text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+            title="내 여행 배낭 (찜 목록) 열기"
+          >
+            <Briefcase size={20} />
+          </button>
+          <button
+            onClick={handleDeletePlan}
+            className="text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
+            title="일정 삭제"
+          >
+            <Trash2 size={20} />
+          </button>
+        </div>
       </div>
 
       {/* 지도 영역 */}
@@ -354,12 +370,12 @@ const PlanDetailPage = () => {
 
         {/* 일정 리스트 */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 pb-20">
-          {currentItems.length === 0 ? (
+          {filteredPlaces.length === 0 ? (
             <div className="text-center text-gray-400 mt-10 text-sm font-bold">
-              아직 {activeDay} 담긴 장소가 없어요 ㅠㅠ
+              아직 {activeDay}일차에 담긴 장소가 없어요 ㅠㅠ
             </div>
           ) : (
-            currentItems.map((item, index) => (
+            filteredPlaces.map((item, index) => (
               <div
                 key={item.planPlaceId}
                 draggable
@@ -378,13 +394,13 @@ const PlanDetailPage = () => {
                 </div>
 
                 {/* 장소 카드 */}
-                <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 p-3 flex items-center justify-between gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <GripVertical
                       size={20}
                       className="text-gray-300 cursor-grab active:cursor-grabbing shrink-0"
                     />
-                    <div className="overflow-hidden">
+                    <div className="min-w-0 flex-1 overflow-hidden">
                       <h4 className="font-bold text-sm text-gray-900 truncate">
                         {item.name}
                       </h4>

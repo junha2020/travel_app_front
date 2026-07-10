@@ -53,9 +53,56 @@ const HomePage = () => {
           {["도쿄", "오사카", "후쿠오카", "삿포로"].map((city, idx) => (
             <div
               key={idx}
+              onClick={() => navigate(`/city/${city}`)}
               className="min-w-[100px] h-24 bg-blue-50/50 rounded-2xl flex items-center justify-center font-bold text-blue-600 shadow-sm border border-blue-100/50 active:scale-95 transition-transform cursor-pointer"
             >
               {city}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 className="text-lg font-bold mb-3 text-gray-900 flex items-center gap-1.5">
+          AI 추천 코스
+        </h2>
+        <div className="flex flex-col gap-3.5">
+          {[
+            {
+              id: 1,
+              title: "도쿄 3박 4일 추천 코스",
+              desc: "초보 여행자에게 추천하는 최적의 코스",
+              img: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=400&q=80",
+              count: 12061,
+            },
+            {
+              id: 2,
+              title: "오사카 먹방 2박 3일 코스",
+              desc: "천하의 부엌에서 즐기는 식도락 루트",
+              img: "https://images.unsplash.com/photo-1590250767139-4d6b63ca44be?auto=format&fit=crop&w=400&q=80",
+              count: 7421,
+            },
+          ].map((course) => (
+            <div
+              key={course.id}
+              onClick={() => navigate(`/recommend/${course.id}`)} // 추천 코스 상세 페이지로 이동
+              className="bg-white rounded-2xl border border-gray-150 p-3.5 flex justify-between items-center cursor-pointer hover:shadow-md transition-all active:scale-[0.99] gap-4"
+            >
+              <div className="flex-1 min-w-0">
+                <h3 className="font-extrabold text-sm text-gray-900 truncate">
+                  {course.title}
+                </h3>
+                <p className="text-[11px] text-gray-400 mt-1 truncate">
+                  {course.desc}
+                </p>
+                <span className="text-[10px] text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded-md mt-3 inline-block">
+                  🔥 저장 {course.count.toLocaleString()}
+                </span>
+              </div>
+              <img
+                src={course.img}
+                alt={course.title}
+                className="w-16 h-16 rounded-xl object-cover shrink-0"
+              />
             </div>
           ))}
         </div>

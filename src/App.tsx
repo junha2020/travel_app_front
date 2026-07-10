@@ -11,6 +11,7 @@ import PlanListPage from "./pages/PlanListPage";
 import FindAccountPage from "./pages/FindAccountPage";
 import PlanCreatePage from "./pages/PlanCreatePage";
 import CityDetailPage from "./pages/CityDetailPage";
+import RecommendDetailPage from "./pages/RecommendDetailPage";
 
 function App() {
   return (
@@ -23,6 +24,10 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/city/:cityName" element={<CityDetailPage />} />
+            <Route
+              path="/recommend/:recommendId"
+              element={<RecommendDetailPage />}
+            />
 
             {/* 장소 관련 */}
             <Route path="/places" element={<PlaceListPage />} />

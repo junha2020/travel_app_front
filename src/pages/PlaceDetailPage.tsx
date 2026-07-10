@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   Calendar,
   ChevronLeft,
   Heart,
@@ -14,6 +15,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { planApi } from "../api/planApi";
 import { backpackApi } from "../api/backpackApi";
+import type { Plan } from "../types/planTypes";
 
 const PlaceDetailPage = () => {
   const Maps = useNavigate();
@@ -64,18 +66,28 @@ const PlaceDetailPage = () => {
   });
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null); // 선택 플랜 임시 보관용 상태 추가
 
-  const handleAddPlace = async (planId: number) => {
+  // 날짜 차이 계산해 총 여행 일차 구하는 함수
+  const getTravelDays = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  const handleAddPlace = async (planId: number, day: number) => {
     if (!place) return;
 
     try {
       await planApi.addPlaceToPlan(planId, {
         placeId: Number(place.id),
-        day: 1,
+        day: day,
       });
 
       alert("추가되었습니다.");
       setIsSheetOpen(false);
+      setSelectedPlan(null); // 초기화
       Maps(`/planner/${planId}`);
     } catch (error) {
       console.error("장소 추가 에러:", error);
@@ -217,28 +229,65 @@ const PlaceDetailPage = () => {
 
             {/* 기존 내 일정 리스트 */}
             <div className="max-h-[35vh] overflow-y-auto flex flex-col gap-2 mt-2">
-              <p className="text-xs font-bold text-gray-400 mb-1 px-1">
-                내 여행 일정
-              </p>
-              {myPlans && myPlans.length > 0 ? (
-                myPlans.map((plan) => (
+              {/* 일차 선택 화면 분기 처리 */}
+              {selectedPlan ? (
+                <div className="flex flex-col gap-3">
                   <button
-                    key={plan.id}
-                    onClick={() => handleAddPlace(plan.id)}
-                    className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gray-200"
+                    onClick={() => setSelectedPlan(null)}
+                    className="text-xs font-bold text-blue-500 flex items-center gap-1 mb-2 hover:underline"
                   >
-                    <span className="font-bold text-gray-900">
-                      {plan.title}
-                    </span>
-                    <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <Calendar size={12} /> {plan.startDate} - {plan.endDate}
-                    </span>
+                    <ArrowLeft size={14} /> 일정 다시 고르기
                   </button>
-                ))
-              ) : (
-                <div className="text-center py-6 text-sm text-gray-400">
-                  등록된 일정이 없습니다.
+                  <p className="text-xs font-bold text-gray-400 px-1">
+                    "{selectedPlan.title}" 몇 일차에 담을까요?
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Array.from(
+                      {
+                        length: getTravelDays(
+                          selectedPlan.startDate,
+                          selectedPlan.endDate,
+                        ),
+                      },
+                      (_, i) => i * 1,
+                    ).map((dayNum) => (
+                      <button
+                        key={dayNum}
+                        onClick={() => handleAddPlace(selectedPlan.id, dayNum)}
+                        className="p-3 bg-gray-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 rounded-xl text-center text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors"
+                      >
+                        {dayNum}일차에 담기
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <p className="text-xs font-bold text-gray-400 mb-1 px-1">
+                    내 여행 일정
+                  </p>
+                  {myPlans && myPlans.length > 0 ? (
+                    myPlans.map((plan) => (
+                      <button
+                        key={plan.id}
+                        onClick={() => setSelectedPlan(plan)} // 플랜 상태 트리거
+                        className="flex flex-col p-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-left transition-colors border border-transparent hover:border-gray-200"
+                      >
+                        <span className="font-bold text-gray-900">
+                          {plan.title}
+                        </span>
+                        <span className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <Calendar size={12} /> {plan.startDate} -{" "}
+                          {plan.endDate}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 text-sm text-gray-400">
+                      등록된 일정이 없습니다.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

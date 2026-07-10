@@ -86,6 +86,21 @@ export const addPlacesToPlanBulk = async (
   await api.post<void>(`/plans/${planId}/places/bulk`, data);
 };
 
+// POST /api/plans/{recommendPlanId}/copy API 호출 함수 추가
+export const copyRecommendPlan = async (
+  recommendPlanId: number,
+  userId: number,
+): Promise<number> => {
+  const response = await api.post<number>(
+    `/plans/${recommendPlanId}/copy`,
+    null,
+    {
+      params: { userId },
+    },
+  );
+  return response.data;
+};
+
 export const planApi = {
   createPlan,
   getUserPlans,
@@ -95,4 +110,5 @@ export const planApi = {
   removePlaceFromPlan,
   updatePlacesSequence,
   addPlacesToPlanBulk,
+  copyRecommendPlan,
 };

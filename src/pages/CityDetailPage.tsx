@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Compass, Info, MapPin } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { placeApi } from "../api/placeApi";
 
 interface CityInfo {
   title: string;
@@ -10,7 +12,6 @@ interface CityInfo {
   visa: string;
   currency: string;
   recommendSeason: string;
-  places: { id: number; name: string; category: string; desc: string }[];
 }
 
 const CITY_DATA: Record<string, CityInfo> = {
@@ -25,32 +26,6 @@ const CITY_DATA: Record<string, CityInfo> = {
     visa: "90일 무비자",
     currency: "엔화 (JPY)",
     recommendSeason: "3월 ~ 5월 (벚꽃 시즌)",
-    places: [
-      {
-        id: 1,
-        name: "도쿄 타워",
-        category: "관광지",
-        desc: "도쿄의 상징적인 붉은 전파탑 야경 명소",
-      },
-      {
-        id: 2,
-        name: "이치란 라멘",
-        category: "맛집",
-        desc: "나만의 커스텀 레시피 돈코츠 라멘 맛집",
-      },
-      {
-        id: 3,
-        name: "신주쿠 교엔",
-        category: "관광지",
-        desc: "도심 속 조용한 쉼터이자 아름다운 국립공원",
-      },
-      {
-        id: 4,
-        name: "시부야 스크램블 교차로",
-        category: "명소",
-        desc: "세계에서 가장 분주한 스크램블 횡단보도",
-      },
-    ],
   },
   오사카: {
     title: "오사카",
@@ -63,7 +38,6 @@ const CITY_DATA: Record<string, CityInfo> = {
     visa: "90일 무비자",
     currency: "엔화 (JPY)",
     recommendSeason: "10월 ~ 11월 (단풍 시즌)",
-    places: [],
   },
   후쿠오카: {
     title: "후쿠오카",
@@ -76,7 +50,6 @@ const CITY_DATA: Record<string, CityInfo> = {
     currency: "엔화 (JPY)",
     visa: "90일 무비자",
     recommendSeason: "11월 ~ 2월 (온천 여행 최적기)",
-    places: [],
   },
   삿포로: {
     title: "삿포로",
@@ -89,7 +62,6 @@ const CITY_DATA: Record<string, CityInfo> = {
     currency: "엔화 (JPY)",
     visa: "90일 무비자",
     recommendSeason: "12월 ~ 2월 (눈축제 시즌)",
-    places: [],
   },
 };
 
@@ -98,6 +70,12 @@ const CityDetailPage = () => {
   const navigate = useNavigate();
 
   const cityInfo = cityName ? CITY_DATA[cityName] : null;
+
+  const { data: dbPlaces = [] } = useQuery({
+    queryKey: ["cityPlaces", cityName],
+    queryFn: () => placeApi.searchPlacesByName(cityName || ""),
+    enabled: !!cityName,
+  });
 
   if (!cityInfo) {
     return (
@@ -200,37 +178,29 @@ const CityDetailPage = () => {
             {cityInfo.title} 추천 핫플레이스
           </h2>
 
-          {cityInfo.places.length === 0 ? (
-            <div className="text-center py-8 text-xs text-gray-400 font-bold bg-white rounded-2xl border border-gray-100 shadow-sm">
-              준비 중인 장소들이에요. 곧 추가될 예정입니다!
+          {dbPlaces.length === 0 ? (
+            <div className="text-center py-6 text-sm text-gray-400 bg-white rounded-2xl border border-gray-100">
+              아직 등록된 핫플레이스가 없습니다.
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {cityInfo.places.map((place) => (
-                <div
-                  key={place.id}
-                  onClick={() => navigate(`/places/${place.id}`)}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex justify-between items-center active:scale-[0.98] transition-transform cursor-pointer hover:shadow-md"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-md">
-                        {place.category}
-                      </span>
-                      <h4 className="font-extrabold text-sm text-gray-800">
-                        {place.name}
-                      </h4>
-                    </div>
-                    <p className="text-[11px] text-gray-400 font-medium">
-                      {place.desc}
-                    </p>
-                  </div>
-                  <span className="text-gray-300 text-xs font-bold shrink-0">
-                    📍 상세보기
+            dbPlaces.map((place) => (
+              <div
+                key={place.id}
+                onClick={() => navigate(`/places/${place.id}`)}
+                className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex justify-between items-center cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
+              >
+                <div>
+                  <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg">
+                    {place.category}
                   </span>
+                  <h3 className="font-bold text-gray-900 mt-2">{place.name}</h3>
+                  <p className="text-xs text-gray-400 mt-1 line-clamp-1">
+                    {place.description}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <span className="text-xl text-gray-300 font-bold">➔</span>
+              </div>
+            ))
           )}
         </div>
       </div>
