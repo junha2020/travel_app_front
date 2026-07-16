@@ -12,6 +12,13 @@ export interface AddPlaceRequestDTO {
   day: number;
 }
 
+export interface GenerateAIPlanDTO {
+  cityName: string;
+  days: number;
+  theme: string;
+  userId: number;
+}
+
 // 공통 axios 인스턴스 생성
 const api = axios.create({
   baseURL: "/api",
@@ -101,6 +108,21 @@ export const copyRecommendPlan = async (
   return response.data;
 };
 
+// POST AI 실시간 일정 생성 API 호출 함수
+export const generateAIPlan = async (
+  dto: GenerateAIPlanDTO,
+): Promise<number> => {
+  const response = await api.post<number>("/plans/ai-generate", null, {
+    params: {
+      cityName: dto.cityName,
+      days: dto.days,
+      theme: dto.theme,
+      userId: dto.userId,
+    },
+  });
+  return response.data;
+};
+
 export const planApi = {
   createPlan,
   getUserPlans,
@@ -111,4 +133,5 @@ export const planApi = {
   updatePlacesSequence,
   addPlacesToPlanBulk,
   copyRecommendPlan,
+  generateAIPlan,
 };

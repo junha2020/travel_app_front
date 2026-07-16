@@ -14,9 +14,10 @@ import {
   Marker,
   Popup,
   Polyline,
+  useMap,
 } from "react-leaflet";
 import L from "leaflet";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const createNumberedPin = (num: number) => {
   const pinColor = "#3B82F6";
@@ -109,6 +110,16 @@ const PlanDetailPage = () => {
     },
   });
 
+  const MapCenterUpdater = ({ center }: { center: [number, number] }) => {
+    const map = useMap();
+    useEffect(() => {
+      if (center[0] && center[1]) {
+        map.flyTo(center, map.getZoom(), { animate: true, duration: 0.8 });
+      }
+    }, [center, map]);
+    return null;
+  };
+
   const handleDeletePlan = () => {
     if (window.confirm("정말 이 일정을 통째로 삭제하시겠습니까?")) {
       deletePlanMutation.mutate(currentPlanId);
@@ -160,25 +171,17 @@ const PlanDetailPage = () => {
     .filter((item) => item.day === activeDay)
     .sort((a, b) => a.sequence - b.sequence);
 
-  // 지도 시각화에 쓰일 유효한 위경도 필터링
-  const validPlaces = currentItems.filter(
-    (item) =>
-      item.latitude !== null &&
-      item.latitude !== undefined &&
-      item.longitude !== null &&
-      item.longitude !== undefined &&
-      !isNaN(Number(item.latitude)) &&
-      !isNaN(Number(item.longitude)),
-  );
-
   // 장소들 중 첫 번째 장소의 좌표를 지도의 중심 좌표로 설정 (장소 없으면 도쿄역을 기본 중심으로 세팅)
   const centerPosition: [number, number] =
-    validPlaces.length > 0
-      ? [Number(currentItems[0].latitude), Number(currentItems[0].longitude)]
+    filteredPlaces.length > 0
+      ? [
+          Number(filteredPlaces[0].latitude),
+          Number(filteredPlaces[0].longitude),
+        ]
       : [35.681236, 139.767125]; // 도쿄역 좌표
 
   // 이동 경로용 좌표 배열 가공
-  const linePath: [number, number][] = validPlaces.map((item) => [
+  const linePath: [number, number][] = filteredPlaces.map((item) => [
     Number(item.latitude),
     Number(item.longitude),
   ]);
@@ -316,6 +319,8 @@ const PlanDetailPage = () => {
           style={{ width: "100%", height: "100%" }}
           zoomControl={false}
         >
+          <MapCenterUpdater center={centerPosition} />
+
           {/* 무료 오픈스트리트맵 타일 레이어 연동 */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -323,10 +328,10 @@ const PlanDetailPage = () => {
           />
 
           {/* 장소들의 마커 및 툴팁 렌더링 */}
-          {validPlaces.map((item, index) => (
+          {filteredPlaces.map((item, index) => (
             <Marker
-              key={item.planPlaceId || item.placeId}
-              position={[item.latitude, item.longitude]}
+              key={item.planPlaceId}
+              position={[Number(item.latitude), Number(item.longitude)]}
               icon={createNumberedPin(index + 1)}
             >
               <Popup>
@@ -378,11 +383,12 @@ const PlanDetailPage = () => {
             filteredPlaces.map((item, index) => (
               <div
                 key={item.planPlaceId}
+                onClick={() => navigate(`/places/${item.placeId}`)}
                 draggable
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(index)}
-                className="flex items-stretch gap-3 drag-item transition-transform active:scale-[0.98]"
+                className="flex items-stretch gap-3 drag-item transition-transform active:scale-[0.98] select-none cursor-move"
               >
                 <div className="flex flex-col items-center w-6 shrink-0 mt-2">
                   <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">

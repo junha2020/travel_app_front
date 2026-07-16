@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { planApi } from "../api/planApi";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, ChevronLeft, Compass, Share2 } from "lucide-react";
 import {
   MapContainer,
@@ -10,6 +10,7 @@ import {
   Polyline,
   Popup,
   TileLayer,
+  useMap,
 } from "react-leaflet";
 
 import L from "leaflet";
@@ -40,6 +41,27 @@ const createNumberedPin = (number: number) => {
     iconSize: [30, 30],
     iconAnchor: [15, 30],
   });
+};
+
+const MapResizeController = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+};
+
+const MapCenterUpdater = ({ center }: { center: [number, number] }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center[0] && center[1]) {
+      map.flyTo(center, map.getZoom(), { animate: true, duration: 0.8 });
+    }
+  }, [center, map]);
+  return null;
 };
 
 const getTravelDays = (start: string, end: string) => {
@@ -168,9 +190,13 @@ const RecommendDetailPage = () => {
           style={{ width: "100%", height: "100%" }}
           zoomControl={false}
         >
+          <MapResizeController />
+
+          <MapCenterUpdater center={defaultCenter as [number, number]} />
+
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyringt">OpenStreetMap</a>'
-            url="https://{s}.title.openstreetmap.org/{z}/{x}/{y}.png"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {filteredPlaces.map((item, index) => (
             <Marker
@@ -238,7 +264,11 @@ const RecommendDetailPage = () => {
             </div>
           ) : (
             filteredPlaces.map((item, index) => (
-              <div key={item.planPlaceId} className="flex items-stretch gap-3">
+              <div
+                key={item.planPlaceId}
+                onClick={() => navigate(`/places/${item.placeId}`)}
+                className="flex items-stretch gap-3 cursor-pointer hover:opacity-90 active:scale-[0.99] transition-all"
+              >
                 <div className="flex flex-col items-center w-6 shrink-0 mt-2">
                   <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center shadow-md">
                     {index + 1}

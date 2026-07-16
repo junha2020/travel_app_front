@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AICustomizeModal } from "../components/AICustomizeModal";
 
 const SUPPORTED_CITIES = ["도쿄", "오사카", "후쿠오카", "삿포로"];
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +63,31 @@ const HomePage = () => {
           ))}
         </div>
       </div>
+
+      {/* AI 맞춤일정 프로모션 배너 */}
+      <div
+        onClick={() => setIsAIModalOpen(true)}
+        className="relative bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-5 text-white cursor-pointer shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] group overflow-hidden"
+      >
+        {/* 반짝이 배경 */}
+        <div className="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform">
+          <Sparkles size={120} />
+        </div>
+
+        <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/25 px-2 py-0.5 rounded-full inline-block mb-2">
+          30초 뚝딱 완성!
+        </span>
+        <h2 className="text-base font-extrabold tracking-tight">
+          나에게 딱 맞는 여행코스는?
+        </h2>
+        <p className="text-xs text-white/80 mt-1">
+          취향을 반영한 AI 맞춤 일정을 순식간에 추천받으세요
+        </p>
+        <button className="mt-4 flex items-center gap-1 text-[11px] font-black bg-white text-blue-600 px-3.5 py-2 rounded-xl active:scale-95 transition-all shadow-sm">
+          바로 추천받기 <Sparkles size={12} className="animate-spin-slow" />
+        </button>
+      </div>
+
       <div>
         <h2 className="text-lg font-bold mb-3 text-gray-900 flex items-center gap-1.5">
           AI 추천 코스
@@ -68,14 +95,14 @@ const HomePage = () => {
         <div className="flex flex-col gap-3.5">
           {[
             {
-              id: 1,
+              id: 9999,
               title: "도쿄 3박 4일 추천 코스",
               desc: "초보 여행자에게 추천하는 최적의 코스",
               img: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=400&q=80",
               count: 12061,
             },
             {
-              id: 2,
+              id: 9998,
               title: "오사카 먹방 2박 3일 코스",
               desc: "천하의 부엌에서 즐기는 식도락 루트",
               img: "https://images.unsplash.com/photo-1590250767139-4d6b63ca44be?auto=format&fit=crop&w=400&q=80",
@@ -107,6 +134,11 @@ const HomePage = () => {
           ))}
         </div>
       </div>
+
+      <AICustomizeModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+      />
     </div>
   );
 };
