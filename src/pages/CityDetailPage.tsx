@@ -1,209 +1,273 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Compass, Info, MapPin } from "lucide-react";
+import { Heart, Info, Map, Menu, Plus, Search, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuthStore } from "../store/useAuthStore";
+import { useState } from "react";
+import { planApi } from "../api/planApi";
+import {
+  getCityInfo,
+  getTravelStatusText,
+  isActiveTravelPlan,
+} from "../utils/travelUtils";
 import { placeApi } from "../api/placeApi";
+import { MenuDrawer } from "../components/MenuDrawer";
 
-interface CityInfo {
-  title: string;
-  engName: string;
-  description: string;
-  imageUrl: string;
-  flightTime: string;
-  visa: string;
-  currency: string;
-  recommendSeason: string;
-}
-
-const CITY_DATA: Record<string, CityInfo> = {
-  도쿄: {
-    title: "도쿄",
-    engName: "Tokyo",
-    description:
-      "전통과 첨단 문명이 함께 숨 쉬는 일본의 심장부. 맛있는 음식, 감각적인 쇼핑, 눈부신 도심 야경이 매일 새롭게 펼쳐지는 아시아 최고의 메가시티입니다.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80", // 도쿄타워
-    flightTime: "약 2시간 10분",
-    visa: "90일 무비자",
-    currency: "엔화 (JPY)",
-    recommendSeason: "3월 ~ 5월 (벚꽃 시즌)",
-  },
-  오사카: {
-    title: "오사카",
-    engName: "Osaka",
-    description:
-      "천하의 부엌이라 불리는 식도락의 천국. 도톤보리의 화려한 네온사인과 활기찬 현지 분위기, 맛있는 타코야키와 오코노미야키가 쉼 없이 오감을 자극하는 매력 도시입니다.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1590250767139-4d6b63ca44be?auto=format&fit=crop&w=800&q=80", // 도톤보리
-    flightTime: "약 1시간 40분",
-    visa: "90일 무비자",
-    currency: "엔화 (JPY)",
-    recommendSeason: "10월 ~ 11월 (단풍 시즌)",
-  },
-  후쿠오카: {
-    title: "후쿠오카",
-    engName: "Fukuoka",
-    description:
-      "공항과 도심이 가장 가까운 최고의 접근성을 가진 힐링 여행지. 맛있는 하카타 돈코츠 라멘과 나카스 포장마차(야타이) 거리의 따스한 감성을 느낄 수 있습니다.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1590250555776-63e80cc0be5b?auto=format&fit=crop&w=800&q=80", // 후쿠오카 모모치 해변
-    flightTime: "약 1시간 15분",
-    currency: "엔화 (JPY)",
-    visa: "90일 무비자",
-    recommendSeason: "11월 ~ 2월 (온천 여행 최적기)",
-  },
-  삿포로: {
-    title: "삿포로",
-    engName: "Sapporo",
-    description:
-      "겨울에는 은빛 눈의 축제가 열리고 여름에는 시원한 맥주 가든이 열리는 홋카이도의 보석. 신선한 대게 요리와 징기스칸 양고기, 그리고 환상적인 설경이 기다립니다.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1542931287-023b922fa89b?auto=format&fit=crop&w=800&q=80", // 삿포로 눈경치
-    flightTime: "약 2시간 40분",
-    currency: "엔화 (JPY)",
-    visa: "90일 무비자",
-    recommendSeason: "12월 ~ 2월 (눈축제 시즌)",
-  },
-};
+const CITY_NAV_CHIPS = [
+  { id: "항공", label: "항공" },
+  { id: "숙소", label: "숙소" },
+  { id: "관광", label: "관광" },
+  { id: "맛집", label: "맛집" },
+  { id: "가이드", label: "가이드" },
+  { id: "투어·티켓", label: "투어·티켓" },
+  { id: "라운지", label: "라운지" },
+];
 
 const CityDetailPage = () => {
-  const { cityName } = useParams();
+  const { cityName: citySlug } = useParams<{ cityName: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const userName = user?.userName || "여행자";
+  const [isLiked, setIsLiked] = useState(false);
+  const [isMenuDrawerOpen, setISMenuDrawerOpen] = useState(false);
 
-  const cityInfo = cityName ? CITY_DATA[cityName] : null;
+  // 영문 슬러그 한글로 변환
+  const cityInfo = getCityInfo(citySlug);
+  const targetCityName = cityInfo.title;
+  const slug = cityInfo.slug || citySlug || "tokyo";
 
-  const { data: dbPlaces = [] } = useQuery({
-    queryKey: ["cityPlaces", cityName],
-    queryFn: () => placeApi.searchPlacesByName(cityName || ""),
-    enabled: !!cityName,
+  // 유저 일정 조회
+  const userId = user?.userid || user?.id || 0;
+  const { data: userPlans = [] } = useQuery({
+    queryKey: ["cityPlans", userId],
+    queryFn: () => planApi.getUserPlans(userId),
+    enabled: !!userId,
   });
 
-  if (!cityInfo) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-6 text-center bg-gray-50">
-        <p className="text-gray-500 font-bold mb-4">
-          앗! 준비되지 않은 도시 정보예요 ㅜㅜ
-        </p>
-        <button
-          onClick={() => navigate("/")}
-          className="px-5 py-2.5 bg-blue-500 text-white font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-blue-500/20"
-        >
-          메인으로 돌아가기
-        </button>
-      </div>
-    );
-  }
+  // 해당 도시 활성 일정 매칭
+  const matchedPlan = userPlans.find((p) => {
+    const isCityMatch =
+      p.title?.includes(targetCityName) ||
+      targetCityName.includes(p.title || "");
+    return isCityMatch && isActiveTravelPlan(p.endDate);
+  });
+
+  const headerStatusText = matchedPlan
+    ? getTravelStatusText(matchedPlan.startDate, matchedPlan.endDate)
+    : `${targetCityName} 여행`;
+
+  // 해당 장소 DB에서 장소 목록 조회
+  const { data: dbPlaces = [] } = useQuery({
+    queryKey: ["cityPlaces", targetCityName],
+    queryFn: () => placeApi.searchPlacesByName(targetCityName),
+  });
+
+  // 추천 1순위 대표 장소 동적 할당
+  const mainPlace = dbPlaces[0] || {
+    id: 0,
+    name: `${cityInfo.title} 핵심 투어`,
+    description: cityInfo.description,
+    imageUrl: cityInfo.imageUrl,
+    category: "관광지",
+  };
+
+  // 서브 추천 장소들
+  const subPlaces = dbPlaces.slice(1, 5);
+
+  // 칩 클릭 시 독립 페이지로 이동
+  const handleChipClick = (chipId: string) => {
+    switch (chipId) {
+      case "가이드":
+        navigate(`/city/${slug}/guide`);
+        break;
+      case "관광":
+        navigate(`/city/${slug}/places?type=tour`);
+        break;
+      case "맛집":
+        navigate(`/city/${slug}/places?type=restaurant`);
+        break;
+      case "투어·티켓":
+        navigate(`/city/${slug}/lounge`);
+        break;
+      case "라운지":
+        navigate(`/city/${slug}/lounge`);
+        break;
+      case "항공":
+        alert(`${targetCityName} 행 항공권 최저가 검색 (준비 중)`);
+        break;
+      case "숙소":
+        alert(`${targetCityName} 호텔 최저가 비교 (준비 중)`);
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full bg-white relative">
-      {/* 고화질 도시 대표 이미지 헤더 영역 */}
-      <div className="h-[260px] relative shrink-0 overflow-hidden bg-gray-900">
-        <img
-          src={cityInfo.imageUrl}
-          alt={cityInfo.title}
-          className="w-full h-full object-cover opacity-80"
-        />
-        {/* 그라데이션 오버레이 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+    <div className="flex flex-col min-h-screen bg-white select-none pb-10">
+      {/* 상단 헤더 */}
+      <header className="bg-teal-500 text-white sticky top-0 z-40 shadow-xs">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-1 hover:bg-teal-600 rounded-full transition-colors"
+            >
+              <X size={22} />
+            </button>
+            <h1 className="text-base font-extrabold tracking-tight">
+              {headerStatusText}
+            </h1>
+          </div>
 
-        {/* 상단 뒤로가기 버튼 */}
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 p-2 bg-black/30 backdrop-blur-md rounded-full text-white active:scale-90 transition-all border border-white/10"
-        >
-          <ChevronLeft size={24} />
-        </button>
-
-        {/* 도시 타이틀 */}
-        <div className="absolute bottom-6 left-5 text-white">
-          <h1 className="text-3xl font-extrabold tracking-tight drop-shadow-md">
-            {cityInfo.title}
-          </h1>
-          <p className="text-sm font-semibold tracking-wider text-white/80 uppercase">
-            {cityInfo.engName}
-          </p>
-        </div>
-      </div>
-
-      {/* 본문 소개 영역 */}
-      <div className="flex-1 overflow-y-auto p-5 pb-20 flex flex-col gap-6 bg-gray-50/50">
-        {/* 도시 설명 카드 */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <h2 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-1.5">
-            <Compass size={18} className="text-blue-500" />
-            도시 스토리
-          </h2>
-          <p className="text-sm text-gray-600 leading-relaxed font-medium">
-            {cityInfo.description}
-          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() =>
+                navigate(`/places?search=${encodeURIComponent(targetCityName)}`)
+              }
+              className="p-1 hover:bg-teal-600 rounded-full transition-colors"
+            >
+              <Search size={20} />
+            </button>
+            <button
+              onClick={() => navigate(`/city/${slug}/map`)}
+              className="p-1 hover:bg-teal-600 rounded-full transition-colors"
+            >
+              <Map size={20} />
+            </button>
+            <button
+              onClick={() => setISMenuDrawerOpen(true)}
+              className="p-1 hover:bg-teal-600 rounded-full transition-colors relative"
+            >
+              <Menu size={22} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-teal-500"></span>
+            </button>
+          </div>
         </div>
 
-        {/* 여행 꿀팁 정보 그리드 */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-            <Info size={18} className="text-blue-500" />
-            여행 기본 정보
-          </h2>
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 border border-gray-100/50">
-              <span className="text-gray-400 font-bold">비행시간</span>
-              <span className="text-gray-800 font-extrabold">
-                {cityInfo.flightTime}
-              </span>
+        {/* 가로 바로가기 칩 바 */}
+        <nav className="flex items-center overflow-x-auto scrollbar-hide px-4 gap-4 text-sm font-bold border-t border-teal-400/40 py-2.5">
+          {CITY_NAV_CHIPS.map((chip) => (
+            <button
+              key={chip.id}
+              onClick={() => handleChipClick(chip.id)}
+              className="text-teal-100 hover:text-white shrink-0 font-bold active:scale-95 transition-all"
+            >
+              {chip.label}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      {/* 메인 본문 영역 */}
+      <main className="p-5 flex flex-col gap-6">
+        {/* AI 맞춤 추천 대형 카드 */}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-1.5 px-1">
+            <h2 className="text-base font-black text-gray-900">
+              {userName}님을 위한 트리플 AI 추천
+            </h2>
+            <Info size={16} className="text-gray-400 cursor-pointer" />
+          </div>
+
+          <div className="bg-white rounded-3xl border border-gray-150 overflow-hidden shadow-xs">
+            <div className="h-[280px] relative overflow-hidden bg-gray-100">
+              <img
+                src={mainPlace.imageUrl || cityInfo.imageUrl}
+                alt={mainPlace.name}
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() => setIsLiked(!isLiked)}
+                className="absolute top-4 right-4 p-2.5 bg-black/30 backdrop-blur-md rounded-full text-white active:scale-90 transition-all"
+              >
+                <Heart
+                  size={22}
+                  className={
+                    isLiked ? "fill-rose-500 text-rose-500" : "text-white"
+                  }
+                />
+              </button>
             </div>
-            <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 border border-gray-100/50">
-              <span className="text-gray-400 font-bold">비자 요건</span>
-              <span className="text-gray-800 font-extrabold">
-                {cityInfo.visa}
-              </span>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 border border-gray-100/50">
-              <span className="text-gray-400 font-bold">사용 통화</span>
-              <span className="text-gray-800 font-extrabold">
-                {cityInfo.currency}
-              </span>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-2 border border-gray-100/50">
-              <span className="text-gray-400 font-bold">추천 여행 시기</span>
-              <span className="text-gray-800 font-extrabold text-[11px] truncate">
-                {cityInfo.recommendSeason}
-              </span>
+
+            <div className="p-5 flex flex-col gap-3">
+              <div>
+                <h3 className="tex-xl font-black text-gray-900">
+                  {mainPlace.name}
+                </h3>
+                <p className="text-xs text-gray-600 font-bold mt-0.5 line-clamp-1">
+                  {mainPlace.description}
+                </p>
+                <p className="text-[11px] text-gray-400 mt-1 font-medium">
+                  {mainPlace.category || "관광지"} · {targetCityName} · 실시간
+                  평점 ★ 4.8
+                </p>
+              </div>
+
+              <div className="bg-blue-50/80 rounded-xl p-2.5">
+                <p className="text-xs font-black text-blue-600">
+                  {targetCityName} 여행자들이 가장 많이 찾는 인기 장소 랭킹 1위!
+                </p>
+              </div>
+
+              <button
+                onClick={() =>
+                  alert(`[${mainPlace.name}] 일정이 추가되었습니다!`)
+                }
+                className="w-full py-3 bg-white border border-gray-250 hover:bg-gray-50 text-gray-800 font-extrabold text-xs rounded-2xl active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <Plus size={16} />
+                <span>내 일정에 담기</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* 추천 명소 연동 리스트 */}
+        {/* 최근 본 여행 정보 */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold text-gray-900 px-1 flex items-center gap-1.5">
-            <MapPin size={18} className="text-blue-500" />
-            {cityInfo.title} 추천 핫플레이스
-          </h2>
+          <h3 className="text-base font-black text-gray-900 px-1">
+            {targetCityName} 추천 명소 & 티켓
+          </h3>
 
-          {dbPlaces.length === 0 ? (
-            <div className="text-center py-6 text-sm text-gray-400 bg-white rounded-2xl border border-gray-100">
-              아직 등록된 핫플레이스가 없습니다.
-            </div>
-          ) : (
-            dbPlaces.map((place) => (
-              <div
-                key={place.id}
-                onClick={() => navigate(`/places/${place.id}`)}
-                className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex justify-between items-center cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
-              >
-                <div>
-                  <span className="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg">
-                    {place.category}
-                  </span>
-                  <h3 className="font-bold text-gray-900 mt-2">{place.name}</h3>
-                  <p className="text-xs text-gray-400 mt-1 line-clamp-1">
-                    {place.description}
-                  </p>
+          <div className="flex gap-3.5 overflow-x-auto scrollbar-hide pb-2">
+            {subPlaces.length > 0 ? (
+              subPlaces.map((place) => (
+                <div
+                  key={place.id}
+                  onClick={() => navigate(`/places/${place.id}`)}
+                  className="min-w-[180px] bg-white rounded-3xl border border-gray-150 overflow-hidden shadow-xs shrink-0 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                >
+                  <img
+                    src={place.imageUrl || cityInfo.imageUrl}
+                    alt={place.name}
+                    className="w-full h-[120px] object-cover bg-gray-100"
+                  />
+                  <div className="p-3.5 flex flex-col gap-1">
+                    <h4 className="font-black text-xs text-gray-900 truncate">
+                      {place.name}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 line-clamp-2 leading-tight font-medium">
+                      {place.description}
+                    </p>
+                    <span className="text-[10px] text-gray-400 font-bold mt-1">
+                      {place.category} · {targetCityName}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-xl text-gray-300 font-bold">➔</span>
+              ))
+            ) : (
+              <div className="text-xs text-gray-400 py-4 px-2">
+                등록된 추가 명소가 없습니다.
               </div>
-            ))
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* 전역 공통 사이드 메뉴 드로어 렌더링 */}
+      <MenuDrawer
+        isOpen={isMenuDrawerOpen}
+        onClose={() => setISMenuDrawerOpen(false)}
+      />
     </div>
   );
 };

@@ -12,18 +12,40 @@ import FindAccountPage from "./pages/FindAccountPage";
 import PlanCreatePage from "./pages/PlanCreatePage";
 import CityDetailPage from "./pages/CityDetailPage";
 import RecommendDetailPage from "./pages/RecommendDetailPage";
+import CityGuidePage from "./components/city/CityGuidePage";
+import SearchPage from "./pages/SearchPage";
+import CityPlaceListPage from "./components/city/CityPlaceListPage";
+import CityTourListPage from "./components/city/CityTourListPage";
+import CityLoungePage from "./components/city/CityLoungePage";
+import CitySavedMapPage from "./pages/CitySavedMapPage";
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-200 flex justify-center font-sans text-gray-900">
       <div className="w-full max-w-md bg-white min-h-screen relative shadow-2xl overflow-hidden flex flex-col">
-        <div className="h-12 bg-white flex justify-center items-end pb-2 font-bold text-sm z-10 sticky top-0 border-b border-gray-100">
-          Travel App
-        </div>
         <main className="flex-1 overflow-y-auto pb-[64px] bg-white">
           <Routes>
+            {/* 홈 & 전면 검색 */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+
+            {/* 도시 메인 홈 & 지도 뷰 */}
             <Route path="/city/:cityName" element={<CityDetailPage />} />
+            <Route path="/city/:cityName/map" element={<CitySavedMapPage />} />
+
+            {/* 도시 내부 서브 페이지 */}
+            <Route path="/city/:cityName/guide" element={<CityGuidePage />} />
+            <Route
+              path="/city/:cityName/places"
+              element={<CityPlaceListPage />}
+            />
+            <Route
+              path="/city/:cityName/tours"
+              element={<CityTourListPage />}
+            />
+            <Route path="/city/:cityName/lounge" element={<CityLoungePage />} />
+
+            {/* AI 추천 상세 */}
             <Route
               path="/recommend/:recommendId"
               element={<RecommendDetailPage />}

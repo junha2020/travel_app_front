@@ -249,7 +249,7 @@ const PlaceDetailPage = () => {
                           selectedPlan.endDate,
                         ),
                       },
-                      (_, i) => i * 1,
+                      (_, i) => i + 1,
                     ).map((dayNum) => (
                       <button
                         key={dayNum}
