@@ -151,6 +151,28 @@ export const isActiveTravelPlan = (endDateStr?: string): boolean => {
   return end >= today;
 };
 
+/**
+ * 여행 날짜를 예쁘게 변환해주는 함수
+ * @param startDateStr 시작일 (YYYY-MM-DD)
+ * @param endDateStr 종료일 (YYYY-MM-DD)
+ * @returns 'M.D(요일) - M.D(요일)'
+ */
+export const formatTravelDates = (
+  startDateStr?: string,
+  endDateStr?: string,
+): string => {
+  if (!startDateStr || !endDateStr) return "";
+
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+
+  const startFormatted = `${start.getMonth() + 1}.${start.getDate()}(${days[start.getDay()]})`;
+  const endFormatted = `${end.getMonth() + 1}.${end.getDate()}(${days[end.getDay()]})`;
+
+  return `${startFormatted} - ${endFormatted}`;
+};
+
 // 일본 8대 지원 도시 상세 가이드 인터페이스
 export interface CityDetailInfo {
   title: string;

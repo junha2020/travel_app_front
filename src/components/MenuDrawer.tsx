@@ -86,7 +86,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
           {/* 3대 바로가기 */}
           <div className="grid grid-cols-3 gap-2.5 py-5 border-b border-gray-100 text-center">
             <div
-              onClick={() => handleAuthenticatedAction("/")}
+              onClick={() => handleAuthenticatedAction("/my")}
               className="flex flex-col items-center gap-1.5 cursor-pointer group"
             >
               <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 group-active:scale-95 transition-transform shadow-2xs">
@@ -98,7 +98,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div
-              onClick={() => handleAuthenticatedAction("/my")}
+              onClick={() => handleAuthenticatedAction("/places")}
               className="flex flex-col items-center gap-1.5 cursor-pointer group"
             >
               <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-105 group-active:scale-95 transition-transform shadow-2xs">
@@ -145,7 +145,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
                 onClose();
                 navigate("/city/tokyo/tours");
               }}
-              className="py-3.5 flex justify-between. items-center cursor-pointer. hover:text-amber-600 transition-colors group"
+              className="py-3.5 flex justify-between items-center cursor-pointer hover:text-amber-600 transition-colors group"
             >
               <div className="flex items-center gap-3">
                 <Ticket size={18} className="text-amber-500" />
@@ -162,7 +162,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* 실시간 도시·항공 통합 검색 */}
+            {/* 실시간 도시·명소 통합 검색 */}
             <div
               onClick={() => {
                 onClose();
@@ -177,6 +177,24 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
               <ChevronRight
                 size={16}
                 className="text-gray-300 group-hover:text-blue-600"
+              />
+            </div>
+
+            {/* 실시간 항공·숙소 통합 검색 */}
+            <div
+              onClick={() => {
+                onClose();
+                navigate("/search");
+              }}
+              className="py-3.5 flex justify-between items-center cursor-pointer hover:text-blue-600 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <Search size={18} className="text-green-500" />
+                <span>일본 항공권 & 숙소 통합 검색</span>
+              </div>
+              <ChevronRight
+                size={16}
+                className="text-gray-300 group-hover:text-green-600"
               />
             </div>
 

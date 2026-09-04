@@ -8,15 +8,14 @@ import {
 } from "../utils/travelUtils";
 import {
   ArrowLeft,
+  BookOpen,
   Building2,
   ChevronRight,
-  MapPin,
   Plane,
   Search,
   Ticket,
   X,
 } from "lucide-react";
-import { JAPAN_TOP_PASSES } from "../data/japanPassData";
 
 const SEARCH_CATEGORIES = [
   { id: "all", label: "추천" },
@@ -31,6 +30,19 @@ const SEARCH_CATEGORIES = [
 ] as const;
 
 type SearchCategory = (typeof SEARCH_CATEGORIES)[number]["id"];
+
+const POPULAR_SEARCH_PILLS = [
+  "오사카",
+  "도쿄",
+  "후쿠오카",
+  "삿포로",
+  "오키나와",
+  "나고야",
+  "다카마쓰",
+  "마쓰야마",
+  "도쿄 타워",
+  "유니버셜 스튜디오",
+];
 
 const MOCK_SEARCH_DATA = {
   // 1. 가이드 (4종)
@@ -267,18 +279,22 @@ const SearchPage = () => {
   const [searchParams] = useSearchParams();
 
   // 검색 상태 관리
+  const initialCity = searchParams.get("city") || null;
   const initialQuery = searchParams.get("query") || "";
-  const initialCity = searchParams.get("city") || "도쿄";
 
   const [selectedCityTag, setSelectedCityTag] = useState<string | null>(
     initialCity,
   );
   const [searchText, setSearchText] = useState<string>(initialQuery);
   const [activeCategory, setActiveCategory] = useState<SearchCategory>("all");
-  const [isTypingMode, setIsTypingMode] = useState<boolean>(false);
 
   const targetCityName = selectedCityTag || "도쿄";
   const cityInfo = getCityInfo(targetCityName);
+
+  // 3개 상태 판별
+  const isFilterMode = (searchText || "").trim().length > 0;
+  const isResultMode = !!selectedCityTag && !isFilterMode;
+  const isInitialMode = !selectedCityTag && !isFilterMode;
 
   // 실시간 연관 검색어 필터링
   const autocompleteSuggestions = useMemo(() => {
@@ -293,6 +309,7 @@ const SearchPage = () => {
       subText: `${city}(일본)`,
       hasHomeButton: true,
       slug: getCitySlug(city),
+      imageUrl: getCityInfo(city).imageUrl,
     }));
 
     const keywordSuggestions = POPULAR_SEARCH_KEYWORDS.filter(
@@ -305,6 +322,8 @@ const SearchPage = () => {
       subText: `${targetCityName} 인기 장소`,
       hasHomeButton: false,
       slug: "",
+      imageUrl:
+        "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=100&q=80",
     }));
 
     return [...citySuggestions, ...keywordSuggestions];
@@ -332,12 +351,17 @@ const SearchPage = () => {
   const handleSelectCityTag = (cityName: string) => {
     setSelectedCityTag(cityName);
     setSearchText("");
-    setIsTypingMode(false);
   };
 
   const handleSearchSubmit = (keyword?: string) => {
-    if (keyword !== undefined) setSearchText(keyword);
-    setIsTypingMode(false);
+    if (keyword !== undefined) {
+      if (SUPPORTED_JAPAN_CITIES.includes(keyword as any)) {
+        setSelectedCityTag(keyword);
+        setSearchText("");
+      } else {
+        setSearchText(keyword);
+      }
+    }
   };
 
   return (
@@ -353,19 +377,16 @@ const SearchPage = () => {
           </button>
 
           {/* 검색창 컨테이너 */}
-          <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+          <div className="flex-1 flex items-center gap-1.5 bg-gray-100 px-3.5 py-2 rounded-2xl min-h-[44px]">
             {/* 선택된 도시 스마트 태그 칩 */}
-            {selectedCityTag && (
-              <span className="bg-white text-blue-600 border border-blue-200 text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1 shrink-0 mr-2 shadow-2xs">
+            {selectedCityTag && !isFilterMode && (
+              <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 font-black text-xs px-2.5 py-1 rounded-xl shrink-0 animate-scale-up">
                 <span>{selectedCityTag}</span>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedCityTag(null);
-                  }}
-                  className="hover:text-blue-800"
+                  onClick={() => setSelectedCityTag(null)}
+                  className="hover:bg-blue-100 p-0.5 rounded-full"
                 >
-                  <X size={12} />
+                  <X size={13} />
                 </button>
               </span>
             )}
@@ -375,62 +396,62 @@ const SearchPage = () => {
               value={searchText}
               onChange={(e) => {
                 setSearchText(e.target.value);
-                setIsTypingMode(true);
-              }}
-              onFocus={() => {
-                if (searchText.trim()) setIsTypingMode(true);
               }}
               onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
               placeholder={
                 selectedCityTag ? "검색어 입력" : "일본 도시, 명소, 숙소 검색"
               }
-              className="w-full bg-transparent text-sm font-bold text-gray-900 outline-none placeholder:text-gray-400"
+              className="flex-1 bg-transparent text-sm font-extrabold text-gray-900 placeholder:text-gray-400 outline-none min-w-0"
             />
 
-            {searchText && (
+            {searchText ? (
               <button
                 onClick={() => {
                   setSearchText("");
-                  setIsTypingMode(false);
                 }}
-                className="p-1 text-gray-400 hover:text-gray-600 mr-1"
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-full"
               >
                 <X size={16} />
               </button>
+            ) : (
+              <button
+                onClick={() => handleSearchSubmit()}
+                className="text-gray-700 hover:text-blue-600"
+              >
+                <Search size={18} />
+              </button>
             )}
-
-            <button
-              onClick={() => handleSearchSubmit()}
-              className="text-gray-700 hover:text-blue-600"
-            >
-              <Search size={18} />
-            </button>
           </div>
         </div>
-
-        {/* 9대 카테고리 가로 스크롤 탭 바 */}
-        {!isTypingMode && (
-          <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide pt-3 pb-1 -mx4 px-4">
-            {SEARCH_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-all ${
-                  activeCategory === cat.id
-                    ? "bg-blue-600 text-white font-black shadow-2xs"
-                    : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </nav>
-        )}
       </header>
 
-      {/* 실시간 연관 검색어 자동완성 뷰 */}
-      {isTypingMode && searchText.trim() ? (
-        <div className="flex flex-col p-4 divide-y divide-gray-100">
+      {/* 초기 인기 검색 화면 */}
+      {isInitialMode && (
+        <main className="flex-1 p-5 flex flex-col gap-4 animate-fade-in">
+          <h3 className="text-sm font-black text-gray-900">인기 검색</h3>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_SEARCH_PILLS.map((pill) => (
+              <button
+                key={pill}
+                onClick={() => {
+                  if (SUPPORTED_JAPAN_CITIES.includes(pill as any)) {
+                    handleSelectCityTag(pill);
+                  } else {
+                    setSearchText(pill);
+                  }
+                }}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 active:scale-95 text-xs font-bold text-gray-800 rounded-full transition-all"
+              >
+                {pill}
+              </button>
+            ))}
+          </div>
+        </main>
+      )}
+
+      {/* 실시간 연관검색어 및 [여행 홈] 버튼 */}
+      {isFilterMode && (
+        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 bg-white animate-fade-in">
           {autocompleteSuggestions.length > 0 ? (
             autocompleteSuggestions.map((item, idx) => (
               <div
@@ -442,25 +463,19 @@ const SearchPage = () => {
                     handleSearchSubmit(item.name);
                   }
                 }}
-                className="py-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50 px-2 rounded-xl transition-colors"
+                className="p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-150 flex items-center justify-center">
-                    {item.type === "city" ? (
-                      <img
-                        src={getCityInfo(item.name).imageUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <MapPin size={18} className="text-gray-400" />
-                    )}
-                  </div>
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-10 h-10 rounded-full object-cover shrink-0 bg-gray-100 shadow-2xs"
+                  />
                   <div>
-                    <h4 className="text-sm font-extrabold text-gray-900">
+                    <h4 className="text-sm font-black text-gray-900">
                       {renderHighlightedText(item.name, searchText)}
                     </h4>
-                    <p className="text-[11px] text-gray-400 font-medium">
+                    <p className="text-xs text-gray-400 font-medium">
                       {item.subText}
                     </p>
                   </div>
@@ -472,7 +487,7 @@ const SearchPage = () => {
                       e.stopPropagation();
                       navigate(`/city/${item.slug}`);
                     }}
-                    className="px-3 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors shadow-2xs"
+                    className="px-3.5 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors shadow-2xs"
                   >
                     여행 홈
                   </button>
@@ -480,17 +495,37 @@ const SearchPage = () => {
               </div>
             ))
           ) : (
-            <div className="py-12 text-center text-xs text-gray-400">
-              일치하는 실시간 연관 검색어가 없습니다.
+            <div className="py-16 text-center text-xs text-gray-400 font-medium">
+              일치하는 실시간 검색어가 없습니다.
             </div>
           )}
         </div>
-      ) : (
-        /* 통합 검색 결과 뷰 */
-        <main className="p-4 flex flex-col gap-6">
-          {/* 도시 바로가기 카드 + 4개 퀵 메뉴 */}
-          {(activeCategory === "all" || activeCategory === "city") && (
-            <div className="bg-white rounded-3xl p-5 border border-gray-150 shadow-xs flex flex-col gap-5">
+      )}
+
+      {/* 9개 탭 / 도시 카드 / 항공권 및 가이드 피드 */}
+      {isResultMode && (
+        <div className="flex flex-col flex- animate-fade-in">
+          {/* 카테고리 9개 */}
+          <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-4 py-3 border-b border-gray-150 sticky top-[69px] bg-white z-30">
+            {SEARCH_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-black shrink-0 transition-all ${
+                  activeCategory === cat.id
+                    ? "bg-blue-600 text-white shadow-2xs"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* 통합 검색 결과 피드 */}
+          <main className="flex-1 p-4 flex flex-col gap-6">
+            {/* 도시 프로필 카드 및 숏컷 4개 */}
+            <div className="bg-white rounded-3xl p-5 border border-gray-150 shadow-xs flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img
@@ -515,16 +550,13 @@ const SearchPage = () => {
                 </button>
               </div>
 
-              {/* 퀵 메뉴 4개 */}
+              {/* 숏컷 4개 */}
               <div className="grid grid-cols-4 gap-2 pt-2 border-t border-gray-100 text-center">
                 <div
-                  onClick={() => alert(`${targetCityName} 항공권 검색`)}
-                  className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                  onClick={() => alert(`${targetCityName} 항공권 조회`)}
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-gray-50 cursor-pointer"
                 >
-                  <Plane
-                    size={22}
-                    className="text-gray-700 group-hover:text-sky-500 transition-colors"
-                  />
+                  <Plane size={20} className="text-gray-700" />
                   <span className="text-xs font-bold text-gray-700">
                     항공권
                   </span>
@@ -532,375 +564,110 @@ const SearchPage = () => {
                 <div
                   onClick={() =>
                     navigate(
-                      `/places?category=hotel&search=${encodeURIComponent(targetCityName)}`,
+                      `/city/${getCitySlug(targetCityName)}/places?type=hotel`,
                     )
                   }
-                  className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-gray-50 cursor-pointer"
                 >
-                  <Building2
-                    size={22}
-                    className="text-gray-700 group-hover:text-teal-500 transition-colors"
-                  />
+                  <Building2 size={20} className="text-gray-700" />
                   <span className="text-xs font-bold text-gray-700">숙소</span>
                 </div>
                 <div
                   onClick={() =>
-                    navigate(`/city/${getCitySlug(targetCityName)}/tours}`)
+                    navigate(`/city/${getCitySlug(targetCityName)}/tours`)
                   }
-                  className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-gray-50 cursor-pointer"
                 >
-                  <Ticket
-                    size={22}
-                    className="text-gray-700 group-hover:text-amber-500 transition-colors"
-                  />
+                  <Ticket size={20} className="text-gray-700" />
                   <span className="text-xs font-bold text-gray-700">
                     투어·티켓
                   </span>
                 </div>
                 <div
-                  onClick={() => alert(`${targetCityName} 인기 여행지 목록`)}
-                  className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                  onClick={() =>
+                    navigate(`/city/${getCitySlug(targetCityName)}/lounge`)
+                  }
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-gray-50 cursor-pointer"
                 >
-                  <Plane
-                    size={22}
-                    className="text-gray-700 group-hover:text-purple-500 transition-colors"
-                  />
+                  <BookOpen size={20} className="text-gray-700" />
                   <span className="text-xs font-bold text-gray-700">
                     여행기
                   </span>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* 추천 항공권 카드 */}
-          {(activeCategory === "all" || activeCategory === "city") && (
-            <div className="bg-white rounded-3xl p-5 border border-gray-150 shadow-xs flex flex-col gap-3">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-black text-gray-900">
+            {/* 추천 항공권 카드 */}
+            <div className="bg-white rounded-3xl p-5 border border-gray-150 shadow-xs flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-gray-900">
                   추천 항공권
-                </h4>
-                <span
-                  onClick={() => alert("항공권 전체보기")}
-                  className="text-xs font-bold text-blue-600 flex items-center cursor-pointer"
-                >
+                </span>
+                <span className="text-xs font-bold text-blue-600 flex items-center cursor-pointer">
                   더보기 <ChevronRight size={14} />
                 </span>
               </div>
-
-              {/* TODO: 나중에 이 부분 실제 데이터로 치환 */}
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-between mt-1">
+                {/* TODO: 여기 부분 나중에 API로 받아오기 */}
                 <div>
-                  <h3 className="text-xl font-black text-gray-900">
+                  <h4 className="text-lg font-black text-gray-900">
                     165,000원
-                  </h3>
-                  <p className="text-xs text-gray-600 font-bold mt-0.5">
+                  </h4>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">
                     인천 ICN - 나리타 NRT (왕복)
                   </p>
-                  <p className="text-[11px] text-gray-400 font-medium mt-0.5">
-                    2026.09.15 - 2026.09.23
+                  <p className="text-[11px] text-gray-400 font-bold">
+                    2026.09.15 ~ 2026.09.23
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center font-black text-amber-600 text-sm shadow-2xs">
-                  ✈️
-                </div>
+                <span className="w-8 h-8 rounded-full bg-rose-50 text-rose-500 font-black text-sm flex items-center justify-center">
+                  J
+                </span>
               </div>
             </div>
-          )}
 
-          {/* 가이드 */}
-          {(activeCategory === "all" || activeCategory === "guide") && (
+            {/* 가이드 피드 */}
             <div className="flex flex-col gap-3">
-              <h3 className="text-base font-black text-gray-900">가이드</h3>
-              <div className="flex flex-col divide-y- divide-gray-100">
-                {MOCK_SEARCH_DATA.guides.map((item) => (
+              <h3 className="text-base font-black text-gray-900 px-1">
+                가이드
+              </h3>
+              <div className="flex flex-col divide-y divide-gray-100">
+                {MOCK_SEARCH_DATA.guides.map((g) => (
                   <div
-                    key={item.id}
+                    key={g.id}
                     onClick={() =>
                       navigate(`/city/${getCitySlug(targetCityName)}/guide`)
                     }
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
+                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-3xl px-1 transition-colors"
                   >
                     <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
+                      src={g.imageUrl}
+                      alt={g.title}
+                      className="w-14 h-14 rounded-2xl object-cover shrink-0 bg-gray-100 shadow-2xs"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {item.title}
+                      <h4 className="text-xs font-black text-gray-900 truncate">
+                        {g.title}
                       </h4>
-                      <p className="text-xs text-gray-500 font-medium line-clamp-2 mt-0.5 leading-snug">
-                        {item.subtitle}
+                      <p className="text-[11px] text-gray-400 font-medium line-clamp-1 mt-0.5">
+                        {g.subtitle}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
+
               <button
                 onClick={() =>
                   navigate(`/city/${getCitySlug(targetCityName)}/guide`)
                 }
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
+                className="w-full py-3 bg-white border border-gray-200 text-xs font-black text-gray-700 rounded-2xl hover:bg-gray-50 shadow-2xs transition-colors"
               >
                 가이드 검색결과 더보기
               </button>
             </div>
-          )}
-
-          {/* 관광지 */}
-          {(activeCategory === "all" || activeCategory === "tour") && (
-            <div className="flex flex-col gap-3 pt-2">
-              <h3 className="tex-base font-black text-gray-900">관광지</h3>
-              <div className="flex flex-col divide-y- divide-gray-100">
-                {MOCK_SEARCH_DATA.places.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() =>
-                      navigate(
-                        `/city/${getCitySlug(targetCityName)}/places?type=tour`,
-                      )
-                    }
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {item.name}
-                      </h4>
-                      <p className="text-xs text-gray-400 font-bold mt-0.5">
-                        {item.category}
-                      </p>
-                      <p className="text-[11px] text-gray-500 font-medium line-clamp-1 mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() =>
-                  navigate(
-                    `/city/${getCitySlug(targetCityName)}/places?type=tour`,
-                  )
-                }
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
-              >
-                관광지 검색결과 더보기
-              </button>
-            </div>
-          )}
-
-          {/* 맛집 */}
-          {(activeCategory === "all" || activeCategory === "food") && (
-            <div className="flex flex-col gap-3 pt-2">
-              <h3 className="text-base font-black text-gray-900">맛집</h3>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {MOCK_SEARCH_DATA.restaurants.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() =>
-                      navigate(
-                        `/city/${getCitySlug(targetCityName)}/places?type=restaurant`,
-                      )
-                    }
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {item.name}
-                      </h4>
-                      <p className="text-xs text-gray-400 font-bold mt-0.5">
-                        {item.category}
-                      </p>
-                      <p className="text-[11px] text-gray-500 font-medium line-clamp-1 mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() =>
-                  navigate(
-                    `/city/${getCitySlug(targetCityName)}/places?type=restaurant`,
-                  )
-                }
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
-              >
-                맛집 검색결과 더보기
-              </button>
-            </div>
-          )}
-
-          {/* 숙소 */}
-          {(activeCategory === "all" || activeCategory === "hotel") && (
-            <div className="flex flex-col gap-3 pt-2">
-              <h3 className="text-base font-black text-gray-900">숙소</h3>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {MOCK_SEARCH_DATA.hotels.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() =>
-                      alert(`[${item.name}] 숙소 상세 페이지 (준비 중)`)
-                    }
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {item.name}
-                      </h4>
-                      <p className="text-xs text-gray-400 font-bold mt-0.5">
-                        {item.category}
-                      </p>
-                      <p className="text-[11px] text-gray-500 font-medium line-clamp-1 mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => alert("숙소 검색결과 더보기")}
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
-              >
-                숙소 검색결과 더보기
-              </button>
-            </div>
-          )}
-
-          {/* 매거진 */}
-          {(activeCategory === "all" || activeCategory === "magazine") && (
-            <div className="flex flex-col gap-3 pt-2">
-              <h3 className="text-base font-black text-gray-900">매거진</h3>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {MOCK_SEARCH_DATA.magazines.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => alert(`[${item.title}] 매거진 읽기`)}
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs text-gray-500 font-medium line-clamp-2 mt-0.5 leading-snug">
-                        {item.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => alert("매거진 검색결과 전체보기")}
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
-              >
-                매거진 검색결과 더보기
-              </button>
-            </div>
-          )}
-
-          {/* 여행기 */}
-          {(activeCategory === "all" || activeCategory === "trip") && (
-            <div className="flex flex-col gap-3 pt-2">
-              <h3 className="text-base font-black text-gray-900">여행기</h3>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {MOCK_SEARCH_DATA.trips.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => alert(`[${item.title}] 여행기 읽기`)}
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs text-gray-500 font-medium line-clamp-2 mt-0.5 leading-snug">
-                        {item.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => alert("여행기 검색결과 전체보기")}
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
-              >
-                여행기 검색결과 더보기
-              </button>
-            </div>
-          )}
-
-          {/* 투어·티켓 */}
-          {(activeCategory === "all" || activeCategory === "pass") && (
-            <div className="flex flex-col gap-3 pt-2">
-              <h3 className="text-base font-black text-gray-900">투어·티켓</h3>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {JAPAN_TOP_PASSES.slice(0, 4).map((pass) => (
-                  <div
-                    key={pass.id}
-                    onClick={() => window.open(pass.bookingUrl, "_blank")}
-                    className="py-3 flex items-center gap-3.5 cursor-pointer hover:bg-gray-50 rounded-2xl px-1 transition-colors"
-                  >
-                    <img
-                      src={pass.imageUrl}
-                      alt={pass.name}
-                      className="w-16 h-16 rounded-2xl object-cover shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 truncate">
-                        {pass.name}
-                      </h4>
-                      <p className="text-xs text-gray-400 font-bold mt-0.5">
-                        {pass.category} · {pass.city}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-xs font-black">
-                        <span className="text-rose-500 font-extrabold">
-                          {pass.discountRate}
-                        </span>
-                        <span className="text-gray-900">
-                          {pass.price.toLocaleString()}원
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() =>
-                  navigate(`/city/${getCitySlug(targetCityName)}/tours`)
-                }
-                className="w-full py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs mt-1"
-              >
-                투어·티켓 검색결과 더보기
-              </button>
-            </div>
-          )}
-        </main>
+          </main>
+        </div>
       )}
     </div>
   );
