@@ -29,6 +29,7 @@ import {
 import { MenuDrawer } from "../components/MenuDrawer";
 import { placeApi } from "../api/placeApi";
 import { JAPAN_TOP_PASSES } from "../data/japanPassData";
+import { externalApi } from "../api/externalApi";
 
 // 7대 퀵 카테고리 칩 데이터
 const HOME_QUICK_CHIPS = [
@@ -255,6 +256,22 @@ const HomePage = () => {
   const topPasses = JAPAN_TOP_PASSES.slice(0, 3);
   const curatedCity = CURATED_CITIES[curatedCityIndex];
 
+  // 실시간 엔화 환율 쿼리 (30분 마다 캐싱)
+  const { data: exchangeData } = useQuery({
+    queryKey: ["exchangeRate"],
+    queryFn: externalApi.fetchExchangeRate,
+    staleTime: 1000 * 60 * 30,
+    retry: 1,
+  });
+
+  // 활성 도시 실시간 날씨 쿼리 (10분 마다 캐싱)
+  const { data: weatherData } = useQuery({
+    queryKey: ["cityWeather", activeCityName],
+    queryFn: () => externalApi.fetchCityWeather(activeCityName),
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
+  });
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] select-none pb-32 max-w-md mx-auto relative">
       {/* 최상단 통합 헤더 */}
@@ -287,6 +304,54 @@ const HomePage = () => {
           <Menu size={22} />
         </button>
       </header>
+
+      {/* 실시간 트래블 라이브 인포 바 */}
+      <div className="mx-4 mt-3 bg-gradient-to-r from-blue-50/80 via-white to-teal-50/80 border border-blue-100/60 rounded-2xl p-3 shadow-2xs flex items-center justify-between backdrop-blur-sm animate-fade-in">
+        {/* 좌측: 실시간 도시 날씨 */}
+        <div className="flex items-center gap-2">
+          <span className="text-xl shrink-0">
+            {weatherData?.weatherEmoji || "⛅"}
+          </span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-black text-gray-900">
+                {activeCityName}
+              </span>
+              <span className="text-xs font-extrabold text-blue-600">
+                {weatherData
+                  ? `${weatherData.temperature.toFixed(1)}°C`
+                  : "23.5°C"}
+              </span>
+            </div>
+            <span className="text-[10px] text-gray-400 font-bold">
+              {weatherData?.weatherText || "구름 조금"} · 습도{" "}
+              {weatherData?.humidity || 60}%
+            </span>
+          </div>
+        </div>
+
+        <div className="w-[1px] h-6 bg-gray-200"></div>
+
+        {/* 우측: 실시간 엔화 환율 */}
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-xs font-black text-rose-500 shadow-2xs">
+            ￥
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-gray-400 font-bold">
+              실시간 엔화 환율
+            </span>
+            <span className="text-xs font-black text-gray-900">
+              100엔 ={" "}
+              <span className="text-rose-600 font-black">
+                {exchangeData
+                  ? `${exchangeData.rateFor100Yen.toLocaleString()}원`
+                  : "1000.0원"}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
 
       <main className="flex flex-col gap-6 p-4">
         {/* 카테고리 7개 칩 바 */}
