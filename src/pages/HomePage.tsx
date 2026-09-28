@@ -368,6 +368,8 @@ const HomePage = () => {
                   navigate("/city/tokyo/places?type=tour");
                 } else if (chip.id === "food") {
                   navigate("/city/tokyo/places?type=restaurant");
+                } else if (chip.id === "flight") {
+                  navigate("/flights");
                 } else {
                   alert(`[${chip.label}] 서비스 준비 중입니다.`);
                 }
