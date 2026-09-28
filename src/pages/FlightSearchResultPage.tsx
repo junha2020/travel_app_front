@@ -50,7 +50,7 @@ export default function FlightSearchResultPage() {
     ],
     queryFn: async () => {
       const res = await axios.get(
-        `/api/external/flights?/origin=${originCode}&destination=${destCode}&deaprtDate=2026-10-26&returnDate=2026-10-29`,
+        `/api/external/flights?origin=${originCode}&destination=${destCode}&departDate=2026-10-26&returnDate=2026-10-29`,
       );
       return res.data;
     },
