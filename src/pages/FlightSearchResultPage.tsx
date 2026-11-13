@@ -37,8 +37,75 @@ export default function FlightSearchResultPage() {
     return defaultMonthDay;
   };
 
+  // 탑승객 및 좌석 등급 추출 헬퍼
+  const parsePassengers = (text: string) => {
+    let adults = 1;
+    let children = 0;
+    let infants = 0;
+    let cabin = "economy";
+
+    // 성인 수 추출
+    const adultMatch = text.match(/성인\s*(\d+)/);
+    if (adultMatch) {
+      adults = parseInt(adultMatch[1], 10) || 1;
+    } else {
+      const generalMatch = text.match(/(\d+)/);
+      if (generalMatch) adults = parseInt(generalMatch[1], 10) || 1;
+    }
+
+    // 소아 수 추출
+    const childMatch = text.match(/(?:소아|어린이)\s*(\d+)/);
+    if (childMatch) {
+      children = parseInt(childMatch[1], 10) || 0;
+    }
+
+    // 유아 수 추출
+    const infantMatch = text.match(/유아\s*(\d+)/);
+    if (infantMatch) {
+      infants = parseInt(infantMatch[1], 10) || 0;
+    }
+
+    // 좌석 등급 추출
+    if (text.includes("비즈니스") || text.includes("비지니스"))
+      cabin = "business";
+    else if (text.includes("프리미엄")) cabin = "premium-economy";
+    else if (text.includes("일등석") || text.includes("퍼스트"))
+      cabin = "premium-economy";
+    else cabin = "economy";
+
+    return { adults, children, infants, cabin };
+  };
+
   const queryDepart = parseDateToISO(departDate, "2026-10-26");
   const queryReturn = parseDateToISO(returnDate, "2026-10-29");
+
+  // URL 쿼리 파라미터가 명시되어 있으면 우선 채택, 없으면 텍스트 파싱
+  const parsed = parsePassengers(passengerText);
+  const queryAdults = searchParams.get("adults")
+    ? Number(searchParams.get("adults"))
+    : parsed.adults;
+  const queryChildren = searchParams.get("children")
+    ? Number(searchParams.get("children"))
+    : parsed.children;
+  const queryInfants = searchParams.get("infants")
+    ? Number(searchParams.get("infants"))
+    : parsed.infants;
+
+  const rawCabinParams = searchParams.get("cabin");
+  const queryCabin = rawCabinParams
+    ? rawCabinParams.includes("비즈니스") ||
+      rawCabinParams.includes("비지니스") ||
+      rawCabinParams === "business"
+      ? "business"
+      : rawCabinParams.includes("프리미엄") ||
+          rawCabinParams.includes("premium")
+        ? "premium-economy"
+        : rawCabinParams.includes("일등석") ||
+            rawCabinParams.includes("퍼스트") ||
+            rawCabinParams === "first"
+          ? "first"
+          : "economy"
+    : parsed.cabin;
 
   const { data: flightData, isLoading } = useQuery({
     queryKey: [
@@ -50,7 +117,7 @@ export default function FlightSearchResultPage() {
     ],
     queryFn: async () => {
       const res = await axios.get(
-        `/api/external/flights?origin=${originCode}&destination=${destCode}&departDate=2026-10-26&returnDate=2026-10-29`,
+        `/api/external/flights?origin=${originCode}&destination=${destCode}&departDate=${queryDepart}&returnDate=${queryReturn}&adults=${queryAdults}&children=${queryChildren}&infants=${queryInfants}&cabin=${queryCabin}`,
       );
       return res.data;
     },
@@ -108,7 +175,10 @@ export default function FlightSearchResultPage() {
             )
           }
           className="px-3 py-1.5 rounded-full border border-gray-200 text-blue-600 flex items-center gap-1 shrink-0 bg-white"
-        ></button>
+        >
+          {selectedSort === "recommend" ? "추천순" : "가격 낮은순"}{" "}
+          <ChevronDown size={14} />
+        </button>
         <button className="px-3 py-1.5 rounded-full border border-gray-200 text-blue-600 flex items-center gap-1 shrink-0 bg-white">
           필터 <ChevronDown size={14} />
         </button>
@@ -195,7 +265,7 @@ export default function FlightSearchResultPage() {
                     {deal.remainingSeats}석 남음
                   </span>
                   <span className="text-xl font-black text-gray-900">
-                    {Number(deal.price).toLocaleString()}원
+                    {deal.price?.toLocaleString()}원
                   </span>
                 </div>
               </div>
@@ -210,11 +280,11 @@ export default function FlightSearchResultPage() {
         onClose={() => setIsTopModalOpen(false)}
         origin={{
           code: originCode,
-          name: flightData?.originCityName || "인천",
+          name: originName,
         }}
         destination={{
           code: destCode,
-          name: flightData?.destinationCityName || "도쿄",
+          name: destName,
         }}
         departDate={departDate}
         returnDate={returnDate}

@@ -63,7 +63,7 @@ export const findUsername = async (data: {
 
 // 비밀번호 재설정 API 호출
 export const resetPassword = async (data: { email: string }) => {
-  const response = await api.post<{ message: string; tempPassword: string }>(
+  const response = await api.post<{ message: string }>(
     "/users/reset-password",
     data,
   );

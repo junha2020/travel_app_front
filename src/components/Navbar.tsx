@@ -1,9 +1,14 @@
 import { Home, MapPin, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { MAIN_TAB_PATHS } from "../constants/navigation";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  if (!MAIN_TAB_PATHS.includes(location.pathname as any)) {
+    return null;
+  }
 
   const getIconColor = (path: string) => {
     return location.pathname === path ? "text-blue-500" : "text-gray-400";

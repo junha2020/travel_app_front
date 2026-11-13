@@ -489,7 +489,7 @@ const PlanDetailPage = () => {
           {/* 무료 오픈스트리트맵 타일 레이어 연동 */}
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.title.openstreetmap.org/{z}/{x}/{y}.png"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
           {/* 장소들의 마커 및 툴팁 */}
@@ -719,7 +719,7 @@ const PlanDetailPage = () => {
               <div className="grid grid-cols-2 gap-3 mt-3 px-1 select-none">
                 <button
                   onClick={() =>
-                    navigate(`/paces?planId=${planId}&day=${dayNum}`)
+                    navigate(`/places?planId=${planId}&day=${dayNum}`)
                   }
                   className="w-full bg-white hover:bg-gray-50 border border-gray-200 rounded-xl py-3.5 text-center text-sm font-bold text-gray-800 shadow-2xs active:scale-[0.98] transition-all"
                 >

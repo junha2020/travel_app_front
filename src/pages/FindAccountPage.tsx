@@ -39,9 +39,7 @@ const FindAccountPage = () => {
     }
     try {
       const res = await resetPassword(pwForm);
-      alert(
-        `임시 비밀번호가 발급되었습니다!\n[ ${res.tempPassword} ]\n로그인 후 마이페이지에서 꼭 수정해주세요!`,
-      );
+      alert(res.message);
       navigate("/login");
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string }>;

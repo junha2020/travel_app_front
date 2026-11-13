@@ -59,9 +59,7 @@ export const AirlineLogo: React.FC<AirlineLogoProps> = ({
                             ? "MU"
                             : "");
 
-  const logoUrl = code
-    ? `https://logos.skyscnr.com/images/airlines/favicon/${code}.png`
-    : "";
+  const logoUrl = code ? `https://pics.avs.io/60/60/${code}.png` : "";
 
   if (hasError || !logoUrl) {
     const isTway =

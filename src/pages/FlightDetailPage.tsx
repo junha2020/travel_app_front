@@ -1,5 +1,4 @@
-import { ArrowLeft, ChevronRight, Luggage, Plane } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Luggage, Plane } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAirportByCode } from "../data/airportData";
 import { AirlineLogo } from "../components/flight/AirlineLogo";
@@ -275,7 +274,7 @@ export default function FlightDetailPage() {
       </main>
 
       {/* 하단 고정 결제/예약 바 */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-150 p-4 shadow-xl z-30 flex flex-col gap-3">
+      <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-150 p-4 shadow-xl z-30 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-xs font-bold text-gray-400">

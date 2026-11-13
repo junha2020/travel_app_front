@@ -5,7 +5,7 @@ export interface PassengerState {
   adults: number;
   children: number;
   infants: number;
-  cabinClasses: string[];
+  cabinClass: string; // 단일 좌석 등급만 검색하도록 변경함.
 }
 
 interface FlightPassengerModalProps {
@@ -24,23 +24,19 @@ export const FlightPassengerModal: React.FC<FlightPassengerModalProps> = ({
   const [adults, setAdults] = useState(init.adults);
   const [children, setChildren] = useState(init.children);
   const [infants, setInfants] = useState(init.infants);
-  const [cabinClasses, setCabinClasses] = useState<string[]>(
-    init.cabinClasses || ["일반석"],
+  const [cabinClass, setCabinClass] = useState<string>(
+    init.cabinClass || "일반석",
   );
 
   if (!isOpen) return null;
 
-  const toggleClass = (c: string) => {
-    if (cabinClasses.includes(c)) {
-      if (cabinClasses.length > 1)
-        setCabinClasses(cabinClasses.filter((item) => item !== c));
-    } else {
-      setCabinClasses([...cabinClasses, c]);
-    }
+  // 단일 좌석 등급 선택 핸들러
+  const handleSelectCabin = (cls: string) => {
+    setCabinClass(cls);
   };
 
   const handleComplete = () => {
-    onApply({ adults, children, infants, cabinClasses });
+    onApply({ adults, children, infants, cabinClass });
     onClose();
   };
 
@@ -61,6 +57,7 @@ export const FlightPassengerModal: React.FC<FlightPassengerModalProps> = ({
             <li>
               만 2세 미만의 유아라도 별도 좌석에 탑승하려면 소아로 선택해주세요.
             </li>
+            <li>좌석 등급은 단일 등급으로 검색됩니다.</li>
           </ul>
         </div>
 
@@ -82,6 +79,7 @@ export const FlightPassengerModal: React.FC<FlightPassengerModalProps> = ({
                 {adults}
               </span>
               <button
+                disabled={adults + children + infants >= 9}
                 onClick={() => setAdults((a) => a + 1)}
                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600"
               >
@@ -109,6 +107,7 @@ export const FlightPassengerModal: React.FC<FlightPassengerModalProps> = ({
                 {children}
               </span>
               <button
+                disabled={adults + children + infants >= 9}
                 onClick={() => setChildren((c) => c + 1)}
                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600"
               >
@@ -136,6 +135,7 @@ export const FlightPassengerModal: React.FC<FlightPassengerModalProps> = ({
                 {infants}
               </span>
               <button
+                disabled={infants >= adults || adults + children + infants >= 9}
                 onClick={() => setInfants((i) => i + 1)}
                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600"
               >
@@ -147,22 +147,30 @@ export const FlightPassengerModal: React.FC<FlightPassengerModalProps> = ({
 
         <div className="space-y-3 pt-4 border-t border-gray-100">
           {["일반석", "프리미엄 일반석", "비지니스석", "일등석"].map((cls) => {
-            const isChecked = cabinClasses.includes(cls);
+            const isSelected = cabinClass === cls;
             return (
               <div
                 key={cls}
-                onClick={() => toggleClass(cls)}
+                onClick={() => handleSelectCabin(cls)}
                 className="flex items-center justify-between py-1 cursor-pointer"
               >
-                <span className="text-sm font-black text-gray-900">{cls}</span>
+                <span
+                  className={`text-sm ${
+                    isSelected
+                      ? "font-black text-blue-600"
+                      : "font-bold text-gray-900"
+                  }`}
+                >
+                  {cls}
+                </span>
                 <div
                   className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                    isChecked
-                      ? "bg-blue-600 text-white"
+                    isSelected
+                      ? "bg-blue-600 text-white shadow-xs"
                       : "border-2 border-gray-300"
                   }`}
                 >
-                  {isChecked && <Check size={16} />}
+                  {isSelected && <Check size={14} strokeWidth={3} />}
                 </div>
               </div>
             );

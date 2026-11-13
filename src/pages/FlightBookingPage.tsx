@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -8,7 +8,6 @@ import {
   Menu,
   Navigation,
   Plus,
-  TrendingDown,
   User,
 } from "lucide-react";
 import {
@@ -25,7 +24,6 @@ import { FlightCalendarModal } from "../components/flight/FlightCalendarModal";
 
 export default function FlightBookingPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const [tripType, setTripType] = useState<"round" | "oneway" | "multi">(
     "round",
@@ -37,7 +35,7 @@ export default function FlightBookingPage() {
     JAPAN_AIRPORTS[0],
   );
 
-  const [multiSegments, setMultiSegments] = useState([
+  const [multiSegments] = useState([
     {
       origin: DOMESTIC_AIRPORTS[0],
       dest: JAPAN_AIRPORTS[0],
@@ -56,7 +54,7 @@ export default function FlightBookingPage() {
     adults: 1,
     children: 0,
     infants: 0,
-    cabinClasses: ["일반석"],
+    cabinClass: "일반석",
   });
 
   const [airportModalType, setAirportModalType] = useState<
@@ -71,17 +69,26 @@ export default function FlightBookingPage() {
     setDestination(temp);
   };
 
-  const handleSearch = () => {
-    navigate(
-      `/flights/search?origin=${origin.code}&dest=${destination.code}&depart=${departDate}&return=${returnDate}`,
-    );
-  };
+  // 인원 및 좌석 등급
+  const totalPassengers =
+    passengers.adults + passengers.children + passengers.infants;
 
-  const passengerText = `탑승객 ${passengers.adults + passengers.children + passengers.infants}명, ${passengers.cabinClasses[0]}${
-    passengers.cabinClasses.length > 1
-      ? ` 외 ${passengers.cabinClasses.length - 1}`
-      : ""
-  }`;
+  const passengerText = `탑승객 ${totalPassengers}명, ${passengers.cabinClass}`;
+
+  const handleSearch = () => {
+    const params = new URLSearchParams({
+      origin: origin.code,
+      dest: destination.code,
+      depart: departDate,
+      return: returnDate,
+      adults: String(passengers.adults),
+      children: String(passengers.children),
+      infants: String(passengers.infants),
+      cabin: passengers.cabinClass,
+      passenger: passengerText,
+    });
+    navigate(`/flights/search?${params.toString()}`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans pb-10">
