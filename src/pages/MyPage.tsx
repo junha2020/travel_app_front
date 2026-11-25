@@ -18,7 +18,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
-  const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
 
   // 편집
   const [isEditMode, setIsEditMode] = useState(false);
@@ -46,17 +46,15 @@ const MyPage = () => {
       setNewPassword("");
     } catch (err: any) {
       alert(
-        typeof err.response?.data === "string"
-          ? err.response.data
-          : "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.",
+        err.response?.data?.message ||
+          "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.",
       );
     }
   };
 
   // 로그아웃 핸들러 함수
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
+    logout();
     navigate("/", { replace: true });
   };
 
@@ -434,7 +432,7 @@ const MyPage = () => {
             />
             <input
               type="password"
-              placeholder="새 비밀번호 (4 ~ 20자)"
+              placeholder="새 비밀번호 (8 ~ 20자)"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"

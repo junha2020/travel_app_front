@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axiosInstance";
 import type { TravelPlanRequestDTO, Plan } from "../types/planTypes";
 
 export interface UpdatePlaceSequenceDTO {
@@ -18,23 +18,6 @@ export interface GenerateAIPlanDTO {
   theme: string;
   userId: number;
 }
-
-// 공통 axios 인스턴스 생성
-const api = axios.create({
-  baseURL: "/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// 요청 인터셉터 (토큰 있으면 자동으로 Authorization 헤더 추가)
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 // POST /api/plans API 호출 함수
 export const createPlan = async (
