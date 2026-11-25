@@ -70,6 +70,15 @@ export const resetPassword = async (data: { email: string }) => {
   return response.data;
 };
 
+// 마이페이지 비밀번호 변경 API 호출
+export const changePassword = async (
+  userId: number,
+  data: { currentPassword: string; newPassword: string },
+): Promise<UserResponseDTO> => {
+  const response = await api.put<UserResponseDTO>(`/users/${userId}`, data);
+  return response.data;
+};
+
 // 내보내기
 export const authApi = {
   login,
@@ -77,4 +86,5 @@ export const authApi = {
   getMe,
   findUsername,
   resetPassword,
+  changePassword,
 };

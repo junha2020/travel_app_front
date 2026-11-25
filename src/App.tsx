@@ -7,7 +7,7 @@ import PlaceDetailPage from "./pages/PlaceDetailPage";
 import { Routes, Route, useLocation } from "react-router-dom";
 import BookmarkListPage from "./pages/BookmarkListPage";
 import PlanDetailPage from "./pages/PlanDetailPage";
-import PlanListPage from "./pages/PlanListPage";
+import MyPage from "./pages/MyPage";
 import FindAccountPage from "./pages/FindAccountPage";
 import PlanCreatePage from "./pages/PlanCreatePage";
 import CityDetailPage from "./pages/CityDetailPage";
@@ -80,8 +80,8 @@ function App() {
             <Route path="/create-plan" element={<PlanCreatePage />} />
             <Route path="/backpack/:planId" element={<BookmarkListPage />} />
             <Route path="/planner/:planId" element={<PlanDetailPage />} />
-            <Route path="/schedule/:scheduleId" element={<PlanListPage />} />
-            <Route path="/my" element={<PlanListPage />} />
+            <Route path="/schedule/:scheduleId" element={<MyPage />} />
+            <Route path="/my" element={<MyPage />} />
           </Routes>
         </main>
         <Navbar />

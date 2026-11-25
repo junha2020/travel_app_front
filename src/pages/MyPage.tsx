@@ -12,8 +12,9 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { planApi } from "../api/planApi";
 import { useState } from "react";
+import { authApi } from "../api/authApi";
 
-const PlanListPage = () => {
+const MyPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
@@ -22,6 +23,35 @@ const PlanListPage = () => {
   // 편집
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedPlanIds, setSelectedPlanIds] = useState<number[]>([]);
+
+  // 비밀번호 변경 모달 상태 및 제출 핸들러
+  const [isPwModalOpen, setIsPwModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      alert("현재 비밀번호와 새 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+
+    try {
+      await authApi.changePassword(user!.userid || user!.id || 0, {
+        currentPassword,
+        newPassword,
+      });
+      alert("비밀번호가 성공적으로 변경되었습니다!");
+      setIsPwModalOpen(false);
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (err: any) {
+      alert(
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.",
+      );
+    }
+  };
 
   // 로그아웃 핸들러 함수
   const handleLogout = () => {
@@ -198,7 +228,7 @@ const PlanListPage = () => {
   // 5. 로그인 상태에서 UI 렌더링
   return (
     <div className="flex flex-col h-full bg-gray-50 relative">
-      {/* 상단 헤더 */}
+      {/* 상단 헤더 및 내 프로필 카드 */}
       <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 bg-white shrink-0 shadow-sm">
         <div className="flex items-center">
           <button
@@ -207,29 +237,55 @@ const PlanListPage = () => {
           >
             <ChevronLeft size={28} />
           </button>
-          <span className="text-base font-bold ml-2">내 일정</span>
+          <span className="text-base font-bold ml-2">마이페이지</span>
         </div>
 
-        {/* 유저 닉네임 및 로그아웃 버튼 */}
-        <div className="flex items-center gap-3">
-          {plans.length > 0 && (
-            <button
-              onClick={() => {
-                setIsEditMode(!isEditMode);
-                setSelectedPlanIds([]);
-              }}
-              className={`text-xs font-bold rounded-lg px-2.5 py-1.5 transition-all cursor-pointer ${
-                isEditMode
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {isEditMode ? "완료" : "편집"}
-            </button>
-          )}
+        {plans.length > 0 && (
+          <button
+            onClick={() => {
+              setIsEditMode(!isEditMode);
+              setSelectedPlanIds([]);
+            }}
+            className={`text-xs font-bold rounded-lg px-2.5 py-1.5 transition-all cursor-pointer ${
+              isEditMode
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {isEditMode ? "완료" : "일정 편집"}
+          </button>
+        )}
+      </div>
+
+      {/* 내 프로필 카드 섹션 */}
+      <div className="bg-white px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-cyan-500 flex items-center justify-center font-black text-white text-lg shadow-sm shrink-0">
+            {(user.nickName || user.userName || "U")[0]}
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-black text-gray-900 truncate">
+              {user.nickName
+                ? `${user.nickName} (${user.userName})`
+                : user.userName}
+              님
+            </h3>
+            <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
+              {user.email || ""}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setIsPwModalOpen(true)}
+            className="text-xs font-bold text-gray-700 hover:text-gray-900 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 active:scale-95 transition-all cursor-pointer"
+          >
+            비밀번호 변경하기
+          </button>
           <button
             onClick={handleLogout}
-            className="text-xs font-bold text-red-500 hover:text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 rounded-lg px-2.5 py-1.5 active:scale-95 transition-all"
+            className="text-xs font-bold text-red-500 hover:text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 rounded-lg px-2.5 py-1.5 active:scale-95 transition-all cursor-pointer"
           >
             로그아웃
           </button>
@@ -364,8 +420,48 @@ const PlanListPage = () => {
           </button>
         </div>
       )}
+
+      {isPwModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4">
+            <h3 className="text-base font-bold text-gray-900">비밀번호 변경</h3>
+            <input
+              type="password"
+              placeholder="현재(또는 임시) 비밀번호"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+            />
+            <input
+              type="password"
+              placeholder="새 비밀번호 (4 ~ 20자)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+            />
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => {
+                  setIsPwModalOpen(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleChangePassword}
+                className="flex-1 py-2.5 rounded-xl bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 cursor-pointer"
+              >
+                변경하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default PlanListPage;
+export default MyPage;

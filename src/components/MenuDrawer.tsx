@@ -67,7 +67,10 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* 유저 프로필 카드 */}
-          <div className="flex items-center gap-3.5 pb-6 border-b border-gray-100">
+          <div
+            onClick={() => handleAuthenticatedAction("/my")}
+            className="flex items-center gap-3.5 pb-6 border-b border-gray-100"
+          >
             <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 flex items-center justify-center font-black text-white text-lg shadow-md shrink-0">
               {isLoggedIn ? (user?.userName || "게스트")[0] : "?"}
             </div>
@@ -81,6 +84,10 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({ isOpen, onClose }) => {
                   : "나만의 일본 여행 일정을 만들어보세요"}
               </p>
             </div>
+            <ChevronRight
+              size={18}
+              className="text-gray-300 group-hover:text-teal-600 shrink-0"
+            />
           </div>
 
           {/* 3대 바로가기 */}
